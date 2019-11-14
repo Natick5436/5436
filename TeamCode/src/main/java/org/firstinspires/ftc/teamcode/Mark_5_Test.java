@@ -53,7 +53,6 @@ public class Mark_5_Test extends LinearOpMode {
                 robot.lB.setPower(0.5*gamepad1.left_stick_y);
                 robot.rF.setPower(0.5*gamepad1.right_stick_y);
                 robot.rB.setPower(0.5*gamepad1.right_stick_y);
-                robot.rB.setPower(0);
             }
         }
     }
