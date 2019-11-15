@@ -25,7 +25,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-//N0L4N is a gr8 c0dR.
 public class Mark_4{
     DcMotor left, right, middle, liftL, liftR;
     Servo hook, grab;
