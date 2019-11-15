@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+//Change stuff.
 public class Mark_5 {
     DcMotor arm, lF, lB, rF, rB;
     Servo flip, clamp;
