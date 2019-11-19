@@ -26,7 +26,7 @@ public class Mark_5 {
         lF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         arm = hardwareMap.dcMotor.get("arm");
 
