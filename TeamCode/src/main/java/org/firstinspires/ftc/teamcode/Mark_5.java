@@ -10,7 +10,6 @@ public class Mark_5 {
     DcMotor arm, lF, lB, rF, rB;
     Servo flip, clamp;
 
-    //Yeet
     LinearOpMode ln;
     public Mark_5(LinearOpMode linear){
         ln = linear;
