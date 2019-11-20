@@ -290,10 +290,16 @@ public class Mark_5 {
         }
     }
 
-
-    public void strafe(double power){
-        double startAngle;
+    double startAngle;
+    public boolean isStrafing;
+    public void strafe(double power) {
+        if (!isStrafing) {
+            startAngle = getHeading();
+        }
         double turnOffset;
+    }
+    public void strafe(double power, double distance){
+
     }
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);

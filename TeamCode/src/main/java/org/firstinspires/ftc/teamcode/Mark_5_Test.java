@@ -39,15 +39,11 @@ public class Mark_5_Test extends LinearOpMode {
 
             //Drive System
             if(gamepad1.left_bumper){
-                robot.rF.setPower(-0.5);
-                robot.rB.setPower(0.5);
-                robot.lF.setPower(0.5);
-                robot.lB.setPower(-0.5);
+                robot.strafe(-1);
             }else if(gamepad1.right_bumper){
-                robot.rF.setPower(0.5);
-                robot.rB.setPower(-0.5);
-                robot.lF.setPower(-0.5);
-                robot.lB.setPower(0.5);
+                if(robot.strafe(1)){
+
+                }
             }else{
                 robot.lF.setPower(0.5*gamepad1.left_stick_y);
                 robot.lB.setPower(0.5*gamepad1.left_stick_y);
