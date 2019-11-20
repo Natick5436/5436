@@ -253,7 +253,7 @@ public class Mark_5 {
                 return;
             }
         }
-        ln.telemetry.addData("Ready","Ready");
+        ln.telemetry.addData("Status","Ready");
         ln.telemetry.update();
     }
     public void updateVuforia(){
