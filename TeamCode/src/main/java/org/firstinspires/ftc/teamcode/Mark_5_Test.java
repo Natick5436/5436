@@ -55,6 +55,7 @@ public class Mark_5_Test extends LinearOpMode {
                 robot.rB.setPower(0.5*gamepad1.right_stick_y);
             }
             robot.updateVuforia();
+            telemetry.addData("Heading", robot.getHeading());
             telemetry.update();
         }
     }
