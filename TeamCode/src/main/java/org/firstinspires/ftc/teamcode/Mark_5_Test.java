@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "Mark 5 Test", group = "TeleOp")
 public class Mark_5_Test extends LinearOpMode {
    Mark_5 robot = new Mark_5(this);
-   
+
     @Override
     public void runOpMode() throws InterruptedException {
         robot.initialize(hardwareMap);
