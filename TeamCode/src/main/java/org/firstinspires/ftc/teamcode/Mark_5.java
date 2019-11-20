@@ -312,7 +312,9 @@ public class Mark_5 {
         }
     }
 
+
     public void strafe(double power){
-        
+        double startAngle;
+        double turnOffset;
     }
 }
