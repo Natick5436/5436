@@ -100,12 +100,23 @@ public class Mark_5 {
     BNO055IMU imu;
     Orientation angles;
 
+    double odometryX;
+    double odometryY;
+    double odometryAngle, initialAngle;
+    double lastEncoderR, lastEncoderL;
+    double currentEncoderL, currentEncoderR;
+    DcMotor deadWheel;
+    final double ticksPerOdometryWheel = 1430;
+    //diameter in cm
+    final double odometryWheelDiameter = 7.62;
+    final double odometryWheelCirc = odometryWheelDiameter * Math.PI / 100;
+
     LinearOpMode ln;
     public Mark_5(LinearOpMode linear){
         ln = linear;
         robotStatus = Status.PREINIT;
     }
-    public void initialize(HardwareMap hardwareMap){
+    public void initialize(HardwareMap hardwareMap, double startX, double startY, double startAngle){
         this.setStatus(Status.INITIALIZING);
         //Main robot init
         lF = hardwareMap.dcMotor.get("lF");
@@ -131,6 +142,14 @@ public class Mark_5 {
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        //Odometry init
+        odometryX = startX;
+        odometryY = startY;
+        odometryAngle = ACMath.toStandardAngle(startAngle);
+        initialAngle = ACMath.toStandardAngle(startAngle);
+
+        deadWheel = hardwareMap.dcMotor.get("deadWheel");
 
         //Vuforia init
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
