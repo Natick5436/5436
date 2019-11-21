@@ -16,8 +16,11 @@ public class Mark_5_Test extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+
             if (gamepad2.dpad_up){
                 robot.arm.setPower(0.2);
+                robot.encoderCount = robot.arm.getCurrentPosition();
+                telemetry.addData("arm position", robot.encoderCount);
             }else if (gamepad2.dpad_down){
                 robot.arm.setPower(-0.2);
             } else {
