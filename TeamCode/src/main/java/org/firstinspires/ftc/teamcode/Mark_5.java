@@ -287,8 +287,9 @@ public class Mark_5 {
             if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
                 if (trackable.getName().equals("Stone Target")){
                     isSkystone = true;
+                }else {
+                    isSkystone = false;
                 }
-                isSkystone = false;
                 ln.telemetry.addData("Visible Target", trackable.getName());
                 ln.telemetry.addData("isSkystone", isSkystone);
                 targetVisible = true;
