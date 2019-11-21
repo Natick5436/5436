@@ -335,7 +335,7 @@ public class Mark_5 {
             startAngle = getHeading();
         }
         this.setStatus(Status.STRAFING);
-        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(2*Math.PI), -0.25, 0.25);
+        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/2), -0.25, 0.25);
         lF.setPower(power+turnOffset);
         lB.setPower(-power+turnOffset);
         rF.setPower(-power-turnOffset);
