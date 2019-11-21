@@ -292,6 +292,7 @@ public class Mark_5 {
         ln.telemetry.addData("Status","Ready");
         ln.telemetry.update();
     }
+
     public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
@@ -329,7 +330,7 @@ public class Mark_5 {
     double startAngle;
     public void strafe(double power) {
         power *= 0.75;
-        if (robotStatus != Status.STRAFING) {
+        if (getStatus() != Status.STRAFING) {
             startAngle = getHeading();
         }
         this.setStatus(Status.STRAFING);
@@ -346,6 +347,7 @@ public class Mark_5 {
         this.setStatus(Status.STRAFING);
         //TO-DO
     }
+
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         imu.getPosition();
