@@ -104,6 +104,7 @@ public class Mark_5 {
     BNO055IMU imu;
     Orientation angles;
 
+    //in meters or radians respectively unless specified
     double odometryX;
     double odometryY;
     double odometryAngle, initialAngle;
@@ -122,7 +123,7 @@ public class Mark_5 {
     }
     public void initialize(HardwareMap hardwareMap, double startX, double startY, double startAngle){
         this.setStatus(Status.INITIALIZING);
-        //Main robot init
+        //***Main robot init***
         lF = hardwareMap.dcMotor.get("lF");
         lB = hardwareMap.dcMotor.get("lB");
         rF = hardwareMap.dcMotor.get("rF");
@@ -147,7 +148,7 @@ public class Mark_5 {
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        //Odometry init
+        //***Odometry init***
         odometryX = startX;
         odometryY = startY;
         odometryAngle = ACMath.toStandardAngle(startAngle);
@@ -155,7 +156,7 @@ public class Mark_5 {
 
         deadWheel = hardwareMap.dcMotor.get("deadWheel");
 
-        //Vuforia init
+        //***Vuforia init***
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
@@ -274,7 +275,7 @@ public class Mark_5 {
         targetsSkyStone.activate();
 
 
-        //IMU init
+        //***IMU init***
         BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
         imuParameters.mode = BNO055IMU.SensorMode.IMU;
         imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -351,6 +352,6 @@ public class Mark_5 {
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         imu.getPosition();
-        return Math.toRadians(angles.firstAngle);
+        return ACMath.toStandardAngle(Math.toRadians(angles.firstAngle)+initialAngle);
     }
 }
