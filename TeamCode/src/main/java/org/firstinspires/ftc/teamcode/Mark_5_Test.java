@@ -17,18 +17,27 @@ public class Mark_5_Test extends LinearOpMode {
 
         while (opModeIsActive()) {
 
+            telemetry.addData("arm pos", robot.encoderCount);
             if (robot.encoderCount > -1260){
                 robot.flip.setPosition(1);
             }
             if (robot.encoderCount < -1260){
                 robot.flip.setPosition(0.33);
             }
+            if (gamepad2.dpad_left){
+                //while(robot.encoderCount < -300){
+                    robot.arm.setPower(0.2);
+                    if (isStopRequested()){return;}
+                }
+                robot.arm.setPower(0);
+
+            //}
             if (gamepad2.dpad_up){
-                robot.arm.setPower(0.5);
+                robot.arm.setPower(0.3);
                 robot.encoderCount = robot.arm.getCurrentPosition();
                 telemetry.addData("arm position", robot.encoderCount);
             }else if (gamepad2.dpad_down){
-                robot.arm.setPower(-0.5);
+                robot.arm.setPower(-0.3);
                 robot.encoderCount = robot.arm.getCurrentPosition();
                 telemetry.addData("arm position", robot.encoderCount);
             } else {
