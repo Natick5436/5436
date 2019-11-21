@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
 import com.vuforia.TrackableResult;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -120,7 +122,6 @@ public class Mark_5 {
         rB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         arm = hardwareMap.dcMotor.get("arm");
-
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         flip = hardwareMap.servo.get("flip");
@@ -304,18 +305,23 @@ public class Mark_5 {
 
     double startAngle;
     public void strafe(double power) {
-        if (!(robotStatus == Status.STRAFING)) {
+        power *= 0.75;
+        if (robotStatus != Status.STRAFING) {
             startAngle = getHeading();
         }
         this.setStatus(Status.STRAFING);
-        double turnOffset;
-
+        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(2*Math.PI), -0.25, 0.25);
+        lF.setPower(power+turnOffset);
+        lB.setPower(-power+turnOffset);
+        rF.setPower(-power-turnOffset);
+        rB.setPower(power-turnOffset);
     }
     public void strafe(double power, double distance){
         if (!(robotStatus == Status.STRAFING)) {
             startAngle = getHeading();
         }
         this.setStatus(Status.STRAFING);
+        //TO-DO
     }
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
