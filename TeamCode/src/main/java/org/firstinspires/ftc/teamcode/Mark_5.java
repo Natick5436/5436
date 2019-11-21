@@ -27,6 +27,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 public class Mark_5 {
     DcMotor arm, lF, lB, rF, rB;
     Servo flip, clamp;
+    public int encoderCount;
 
     // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
     // 1) Camera Source.  Valid choices are:  BACK (behind screen) or FRONT (selfie side)
@@ -320,6 +321,11 @@ public class Mark_5 {
         }
     }
 
+
+    public void moveToSkystone(){
+
+
+        }
 
     public void strafe(double power){
         double startAngle;
