@@ -13,7 +13,6 @@ public class Mark_5_Test extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         robot.initialize(hardwareMap);
-        telemetry.update();
         waitForStart();
 
         while (opModeIsActive()) {
