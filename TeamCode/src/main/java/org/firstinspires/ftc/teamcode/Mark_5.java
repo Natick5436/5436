@@ -81,6 +81,8 @@ public class Mark_5 {
 
     List<VuforiaTrackable> allTrackables;
 
+    private boolean isSkystone = false;
+
     LinearOpMode ln;
     public Mark_5(LinearOpMode linear){
         ln = linear;
@@ -283,8 +285,14 @@ public class Mark_5 {
         targetVisible = false;
         for (VuforiaTrackable trackable : allTrackables) {
             if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                if (trackable.getName().equals("Stone Target")){
+                    isSkystone = true;
+                }
+                isSkystone = false;
                 ln.telemetry.addData("Visible Target", trackable.getName());
+                ln.telemetry.addData("isSkystone", isSkystone);
                 targetVisible = true;
+
 
                 // getUpdatedRobotLocation() will return null if no new information is available since
                 // the last time that call was made, or if the trackable is not currently visible.
