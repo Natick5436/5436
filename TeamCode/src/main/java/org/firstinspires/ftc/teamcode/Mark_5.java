@@ -66,12 +66,16 @@ public class Mark_5 {
      * and paste it in to your code on the next line, between the double quotes.
      */
     private static final String VUFORIA_KEY =
-            "Ab8+W6//////AAABmR3H1hyVGUZVv4x9ZpH2zrNEztLMVpPNP03jwLczpJ2S0BriANfEdDDjqI1OkjXuWWcW5Bx4Vwj61Z02XWaH0weIlqerhthLUbjHAW+c09rkufj1cT3q7lR+hAx3WHpK8z1dKI//BHSVWPJVaOYRKBxFIV7D2naYDqUPv7ohd2aj8veWRF8Kpb5NjYHS80zy7uBmnFh4Y8zkZLBpzR1KVGePagHGXJNL412r+jXIgJLtqTD7v/9OFAwya/XaloNrsFhtq3/Kho5uJVUkIX6BQbVWLtXW/IvrPbkLzGQqlS9hPz/5t2Arp9IFg884z/d10vw5DMW9ntxXOF3PIUe18kWFmJEKjJ4Y+BouS9LhL8MU";
+            "Ab8+W6//////AAABmR3H1hyVGUZVv4x9ZpH2zrNEztLMVpPNP03jwLczpJ2S0BriANfEdDDjqI1OkjXuWWcW5B"
+        +"x4Vwj61Z02XWaH0weIlqerhthLUbjHAW+c09rkufj1cT3q7lR+hAx3WHpK8z1dKI//BHSVWPJVaOYRKBxFIV7D2na"
+        +"YDqUPv7ohd2aj8veWRF8Kpb5NjYHS80zy7uBmnFh4Y8zkZLBpzR1KVGePagHGXJNL412r+jXIgJLtqTD7v/9OFAwy"
+        +"a/XaloNrsFhtq3/Kho5uJVUkIX6BQbVWLtXW/IvrPbkLzGQqlS9hPz/5t2Arp9IFg884z/d10vw5DMW9ntxXOF3PI"
+        +"Ue18kWFmJEKjJ4Y+BouS9LhL8MU";
 
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
     private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = (6) * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float mmTargetHeight   = (6) * mmPerInch;
 
     // Constant for Stone Target
     private static final float stoneZ = 2.00f * mmPerInch;
