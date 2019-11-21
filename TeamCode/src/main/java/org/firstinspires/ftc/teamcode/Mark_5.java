@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.vuforia.TrackableResult;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -29,6 +30,15 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class Mark_5 {
+    enum Status {STRAFING, DRIVING, INITIALIZING, INITIALIZED, PREINIT}
+    private Status robotStatus;
+    public void setStatus(Status s){
+        robotStatus = s;
+    }
+    public Status getStatus(){
+        return robotStatus;
+    }
+
     DcMotor arm, lF, lB, rF, rB;
     Servo flip, clamp;
 
@@ -91,9 +101,10 @@ public class Mark_5 {
     LinearOpMode ln;
     public Mark_5(LinearOpMode linear){
         ln = linear;
+        robotStatus = Status.PREINIT;
     }
     public void initialize(HardwareMap hardwareMap){
-
+        this.setStatus(Status.INITIALIZING);
         //Main robot init
         lF = hardwareMap.dcMotor.get("lF");
         lB = hardwareMap.dcMotor.get("lB");
@@ -253,6 +264,7 @@ public class Mark_5 {
                 return;
             }
         }
+        this.setStatus(Status.INITIALIZED);
         ln.telemetry.addData("Status","Ready");
         ln.telemetry.update();
     }
@@ -291,15 +303,19 @@ public class Mark_5 {
     }
 
     double startAngle;
-    public boolean isStrafing;
     public void strafe(double power) {
-        if (!isStrafing) {
+        if (!(robotStatus == Status.STRAFING)) {
             startAngle = getHeading();
         }
+        this.setStatus(Status.STRAFING);
         double turnOffset;
+
     }
     public void strafe(double power, double distance){
-
+        if (!(robotStatus == Status.STRAFING)) {
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.STRAFING);
     }
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);

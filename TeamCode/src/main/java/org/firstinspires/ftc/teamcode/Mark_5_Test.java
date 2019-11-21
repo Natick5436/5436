@@ -41,14 +41,13 @@ public class Mark_5_Test extends LinearOpMode {
             if(gamepad1.left_bumper){
                 robot.strafe(-1);
             }else if(gamepad1.right_bumper){
-                if(robot.strafe(1)){
-
-                }
+                robot.strafe(1);
             }else{
                 robot.lF.setPower(0.5*gamepad1.left_stick_y);
                 robot.lB.setPower(0.5*gamepad1.left_stick_y);
                 robot.rF.setPower(0.5*gamepad1.right_stick_y);
                 robot.rB.setPower(0.5*gamepad1.right_stick_y);
+                robot.setStatus(Mark_5.Status.DRIVING);
             }
             robot.updateVuforia();
             telemetry.addData("Heading", robot.getHeading());
