@@ -12,27 +12,29 @@ public class Mark_5_Test extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap);
+        robot.initialize(hardwareMap, 0, 0, 0);
         telemetry.update();
         waitForStart();
 
         while (opModeIsActive()) {
 
+            if (robot.encoderCount > -1260){
+                robot.flip.setPosition(1);
+            }
+            if (robot.encoderCount < -1260){
+                robot.flip.setPosition(0.33);
+            }
             if (gamepad2.dpad_up){
-                robot.arm.setPower(0.2);
+                robot.arm.setPower(0.5);
                 robot.encoderCount = robot.arm.getCurrentPosition();
                 telemetry.addData("arm position", robot.encoderCount);
             }else if (gamepad2.dpad_down){
-                robot.arm.setPower(-0.2);
+                robot.arm.setPower(-0.5);
+                robot.encoderCount = robot.arm.getCurrentPosition();
+                telemetry.addData("arm position", robot.encoderCount);
             } else {
                 robot.arm.setPower(0.0);
                 robot.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            }
-            if (gamepad2.y){
-                robot.flip.setPosition(0.33);
-            }
-            if (gamepad2.a){
-                robot.flip.setPosition(1);
             }
             if (gamepad2.right_bumper){
                 robot.clamp.setPosition(0.45);
@@ -43,20 +45,15 @@ public class Mark_5_Test extends LinearOpMode {
 
             //Drive System
             if(gamepad1.left_bumper){
-                robot.rF.setPower(-0.5);
-                robot.rB.setPower(0.5);
-                robot.lF.setPower(0.5);
-                robot.lB.setPower(-0.5);
+                robot.strafe(-1);
             }else if(gamepad1.right_bumper){
-                robot.rF.setPower(0.5);
-                robot.rB.setPower(-0.5);
-                robot.lF.setPower(-0.5);
-                robot.lB.setPower(0.5);
+                robot.strafe(1);
             }else{
                 robot.lF.setPower(0.5*gamepad1.left_stick_y);
                 robot.lB.setPower(0.5*gamepad1.left_stick_y);
                 robot.rF.setPower(0.5*gamepad1.right_stick_y);
                 robot.rB.setPower(0.5*gamepad1.right_stick_y);
+                robot.setStatus(Mark_5.Status.DRIVING);
             }
             robot.updateVuforia();
             telemetry.update();
