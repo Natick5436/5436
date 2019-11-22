@@ -10,7 +10,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        robot.initialize(hardwareMap);
+        robot.initialize(hardwareMap,0,0,0);
 
         waitForStart();
 

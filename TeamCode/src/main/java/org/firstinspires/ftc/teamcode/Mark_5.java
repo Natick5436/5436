@@ -22,6 +22,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,8 @@ public class Mark_5 {
 
     DcMotor arm, lF, lB, rF, rB;
     Servo flip, clamp;
+
+    public int encoderCount = 0;
 
     // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
     // 1) Camera Source.  Valid choices are:  BACK (behind screen) or FRONT (selfie side)
@@ -72,7 +75,6 @@ public class Mark_5 {
         +"a/XaloNrsFhtq3/Kho5uJVUkIX6BQbVWLtXW/IvrPbkLzGQqlS9hPz/5t2Arp9IFg884z/d10vw5DMW9ntxXOF3PI"
         +"Ue18kWFmJEKjJ4Y+BouS9LhL8MU";
 
-    // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
     private static final float mmPerInch        = 25.4f;
     private static final float mmTargetHeight   = (6) * mmPerInch;
@@ -84,7 +86,7 @@ public class Mark_5 {
     private static final float bridgeZ = 6.42f * mmPerInch;
     private static final float bridgeY = 23 * mmPerInch;
     private static final float bridgeX = 5.18f * mmPerInch;
-    private static final float bridgeRotY = 59;                                 // Units are degrees
+    private static final float bridgeRotY = 59;
     private static final float bridgeRotZ = 180;
 
     // Constants for perimeter targets
@@ -100,6 +102,8 @@ public class Mark_5 {
     private float phoneZRotate    = 0;
 
     List<VuforiaTrackable> allTrackables;
+
+    private boolean isSkystone = false;
 
     BNO055IMU imu;
     Orientation angles;
@@ -123,6 +127,7 @@ public class Mark_5 {
     }
     public void initialize(HardwareMap hardwareMap, double startX, double startY, double startAngle){
         this.setStatus(Status.INITIALIZING);
+      
         //***Main robot init***
         lF = hardwareMap.dcMotor.get("lF");
         lB = hardwareMap.dcMotor.get("lB");
@@ -274,7 +279,6 @@ public class Mark_5 {
         }
         targetsSkyStone.activate();
 
-
         //***IMU init***
         BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
         imuParameters.mode = BNO055IMU.SensorMode.IMU;
@@ -293,14 +297,24 @@ public class Mark_5 {
         ln.telemetry.addData("Status","Ready");
         ln.telemetry.update();
     }
+    public void forwardMeters(double power, double distance){
+      
+    }
 
     public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
         for (VuforiaTrackable trackable : allTrackables) {
             if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                if (trackable.getName().equals("Stone Target")){
+                    isSkystone = true;
+                }else {
+                    isSkystone = false;
+                }
                 ln.telemetry.addData("Visible Target", trackable.getName());
+                ln.telemetry.addData("isSkystone", isSkystone);
                 targetVisible = true;
+
 
                 // getUpdatedRobotLocation() will return null if no new information is available since
                 // the last time that call was made, or if the trackable is not currently visible.
@@ -349,6 +363,31 @@ public class Mark_5 {
         //TO-DO
     }
 
+    public void moveToSkystone(){
+
+    }
+  
+    double startAngle;
+    public void strafe(double power) {
+        power *= 0.75;
+        if (getStatus() != Status.STRAFING) {
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.STRAFING);
+        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+        lF.setPower(power+turnOffset);
+        lB.setPower(-power+turnOffset);
+        rF.setPower(-power-turnOffset);
+        rB.setPower(power-turnOffset);
+    }
+    public void strafe(double power, double distance){
+        if (!(robotStatus == Status.STRAFING)) {
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.STRAFING);
+        //TO-DO
+    }
+  
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         imu.getPosition();
