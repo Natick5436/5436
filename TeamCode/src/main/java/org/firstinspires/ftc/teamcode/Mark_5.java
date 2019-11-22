@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import com.vuforia.TrackableResult;
+
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -125,8 +127,8 @@ public class Mark_5 {
     }
     public void initialize(HardwareMap hardwareMap, double startX, double startY, double startAngle){
         this.setStatus(Status.INITIALIZING);
-
-        //***Main Robot init***
+      
+        //***Main robot init***
         lF = hardwareMap.dcMotor.get("lF");
         lB = hardwareMap.dcMotor.get("lB");
         rF = hardwareMap.dcMotor.get("rF");
@@ -141,7 +143,6 @@ public class Mark_5 {
         rB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         arm = hardwareMap.dcMotor.get("arm");
-
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         flip = hardwareMap.servo.get("flip");
@@ -160,16 +161,9 @@ public class Mark_5 {
 
         deadWheel = hardwareMap.dcMotor.get("deadWheel");
 
-        //***Vuforia init
-        /*
-         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
-         * We can pass Vuforia the handle to a camera preview resource (on the RC phone);
-         * If no camera monitor is desired, use the parameter-less constructor instead (commented out below).
-         */
+        //***Vuforia init***
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-
-        // VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection   = CAMERA_CHOICE;
@@ -211,54 +205,26 @@ public class Mark_5 {
         // For convenience, gather together all the trackable objects in one easily-iterable collection */
         allTrackables = new ArrayList<VuforiaTrackable>();
         allTrackables.addAll(targetsSkyStone);
-
-        /**
-         * In order for localization to work, we need to tell the system where each target is on the field, and
-         * where the phone resides on the robot.  These specifications are in the form of <em>transformation matrices.</em>
-         * Transformation matrices are a central, important concept in the math here involved in localization.
-         * See <a href="https://en.wikipedia.org/wiki/Transformation_matrix">Transformation Matrix</a>
-         * for detailed information. Commonly, you'll encounter transformation matrices as instances
-         * of the {@link OpenGLMatrix} class.
-         *
-         * If you are standing in the Red Alliance Station looking towards the center of the field,
-         *     - The X axis runs from your left to the right. (positive from the center to the right)
-         *     - The Y axis runs from the Red Alliance Station towards the other side of the field
-         *       where the Blue Alliance Station is. (Positive is from the center, towards the BlueAlliance station)
-         *     - The Z axis runs from the floor, upwards towards the ceiling.  (Positive is above the floor)
-         *
-         * Before being transformed, each target image is conceptually located at the origin of the field's
-         *  coordinate system (the center of the field), facing up.
-         */
-
-        // Set the position of the Stone Target.  Since it's not fixed in position, assume it's at the field origin.
-        // Rotated it to to face forward, and raised it to sit on the ground correctly.
-        // This can be used for generic target-centric approach algorithms
         stoneTarget.setLocation(OpenGLMatrix
                 .translation(0, 0, stoneZ)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
-
         //Set the position of the bridge support targets with relation to origin (center of field)
         blueFrontBridge.setLocation(OpenGLMatrix
                 .translation(-bridgeX, bridgeY, bridgeZ)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 0, bridgeRotY, bridgeRotZ)));
-
         blueRearBridge.setLocation(OpenGLMatrix
                 .translation(-bridgeX, bridgeY, bridgeZ)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 0, -bridgeRotY, bridgeRotZ)));
-
         redFrontBridge.setLocation(OpenGLMatrix
                 .translation(-bridgeX, -bridgeY, bridgeZ)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 0, -bridgeRotY, 0)));
-
         redRearBridge.setLocation(OpenGLMatrix
                 .translation(bridgeX, -bridgeY, bridgeZ)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 0, bridgeRotY, 0)));
-
         //Set the position of the perimeter targets with relation to origin (center of field)
         red1.setLocation(OpenGLMatrix
                 .translation(quadField, -halfField, mmTargetHeight)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
-
         red2.setLocation(OpenGLMatrix
                 .translation(-quadField, -halfField, mmTargetHeight)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
@@ -286,22 +252,6 @@ public class Mark_5 {
         rear2.setLocation(OpenGLMatrix
                 .translation(halfField, -quadField, mmTargetHeight)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
-
-        //
-        // Create a transformation matrix describing where the phone is on the robot.
-        //
-        // NOTE !!!!  It's very important that you turn OFF your phone's Auto-Screen-Rotation option.
-        // Lock it into Portrait for these numbers to work.
-        //
-        // Info:  The coordinate frame for the robot looks the same as the field.
-        // The robot's "forward" direction is facing out along X axis, with the LEFT side facing out along the Y axis.
-        // Z is UP on the robot.  This equates to a bearing angle of Zero degrees.
-        //
-        // The phone starts out lying flat, with the screen facing Up and with the physical top of the phone
-        // pointing to the LEFT side of the Robot.
-        // The two examples below assume that the camera is facing forward out the front of the robot.
-
-        // We need to rotate the camera around it's long axis to bring the correct camera forward.
         if (CAMERA_CHOICE == BACK) {
             phoneYRotate = -90;
         } else {
@@ -344,10 +294,11 @@ public class Mark_5 {
             }
         }
         this.setStatus(Status.INITIALIZED);
+        ln.telemetry.addData("Status","Ready");
+        ln.telemetry.update();
     }
-
     public void forwardMeters(double power, double distance){
-
+      
     }
 
     public void updateVuforia(){
@@ -391,10 +342,31 @@ public class Mark_5 {
         }
     }
 
+    double startAngle;
+    public void strafe(double power) {
+        power *= 0.75;
+        if (getStatus() != Status.STRAFING) {
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.STRAFING);
+        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/2), -0.25, 0.25);
+        lF.setPower(power+turnOffset);
+        lB.setPower(-power+turnOffset);
+        rF.setPower(-power-turnOffset);
+        rB.setPower(power-turnOffset);
+    }
+    public void strafe(double power, double distance){
+        if (!(robotStatus == Status.STRAFING)) {
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.STRAFING);
+        //TO-DO
+    }
 
     public void moveToSkystone(){
 
     }
+  
     double startAngle;
     public void strafe(double power) {
         power *= 0.75;
@@ -415,7 +387,7 @@ public class Mark_5 {
         this.setStatus(Status.STRAFING);
         //TO-DO
     }
-
+  
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         imu.getPosition();

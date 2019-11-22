@@ -64,6 +64,7 @@ public class Mark_5_Test extends LinearOpMode {
                 robot.setStatus(Mark_5.Status.DRIVING);
             }
             robot.updateVuforia();
+            telemetry.addData("Heading", robot.getHeading());
             telemetry.update();
         }
     }
