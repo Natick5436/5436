@@ -342,27 +342,6 @@ public class Mark_5 {
         }
     }
 
-    double startAngle;
-    public void strafe(double power) {
-        power *= 0.75;
-        if (getStatus() != Status.STRAFING) {
-            startAngle = getHeading();
-        }
-        this.setStatus(Status.STRAFING);
-        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/2), -0.25, 0.25);
-        lF.setPower(power+turnOffset);
-        lB.setPower(-power+turnOffset);
-        rF.setPower(-power-turnOffset);
-        rB.setPower(power-turnOffset);
-    }
-    public void strafe(double power, double distance){
-        if (!(robotStatus == Status.STRAFING)) {
-            startAngle = getHeading();
-        }
-        this.setStatus(Status.STRAFING);
-        //TO-DO
-    }
-
     public void moveToSkystone(){
 
     }
@@ -380,6 +359,7 @@ public class Mark_5 {
         rF.setPower(-power-turnOffset);
         rB.setPower(power-turnOffset);
     }
+
     public void strafe(double power, double distance){
         if (!(robotStatus == Status.STRAFING)) {
             startAngle = getHeading();
