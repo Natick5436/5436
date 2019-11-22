@@ -1,19 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +31,19 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class Mark_5 {
+    enum Status {STRAFING, DRIVING, INITIALIZING, INITIALIZED, PREINIT}
+    private Status robotStatus;
+    public void setStatus(Status s){
+        robotStatus = s;
+    }
+    public Status getStatus(){
+        return robotStatus;
+    }
+
     DcMotor arm, lF, lB, rF, rB;
     Servo flip, clamp;
+
+    public int encoderCount = 0;
 
     // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
     // 1) Camera Source.  Valid choices are:  BACK (behind screen) or FRONT (selfie side)
@@ -50,12 +67,15 @@ public class Mark_5 {
      * and paste it in to your code on the next line, between the double quotes.
      */
     private static final String VUFORIA_KEY =
-            "Ab8+W6//////AAABmR3H1hyVGUZVv4x9ZpH2zrNEztLMVpPNP03jwLczpJ2S0BriANfEdDDjqI1OkjXuWWcW5Bx4Vwj61Z02XWaH0weIlqerhthLUbjHAW+c09rkufj1cT3q7lR+hAx3WHpK8z1dKI//BHSVWPJVaOYRKBxFIV7D2naYDqUPv7ohd2aj8veWRF8Kpb5NjYHS80zy7uBmnFh4Y8zkZLBpzR1KVGePagHGXJNL412r+jXIgJLtqTD7v/9OFAwya/XaloNrsFhtq3/Kho5uJVUkIX6BQbVWLtXW/IvrPbkLzGQqlS9hPz/5t2Arp9IFg884z/d10vw5DMW9ntxXOF3PIUe18kWFmJEKjJ4Y+BouS9LhL8MU";
+            "Ab8+W6//////AAABmR3H1hyVGUZVv4x9ZpH2zrNEztLMVpPNP03jwLczpJ2S0BriANfEdDDjqI1OkjXuWWcW5B"
+        +"x4Vwj61Z02XWaH0weIlqerhthLUbjHAW+c09rkufj1cT3q7lR+hAx3WHpK8z1dKI//BHSVWPJVaOYRKBxFIV7D2na"
+        +"YDqUPv7ohd2aj8veWRF8Kpb5NjYHS80zy7uBmnFh4Y8zkZLBpzR1KVGePagHGXJNL412r+jXIgJLtqTD7v/9OFAwy"
+        +"a/XaloNrsFhtq3/Kho5uJVUkIX6BQbVWLtXW/IvrPbkLzGQqlS9hPz/5t2Arp9IFg884z/d10vw5DMW9ntxXOF3PI"
+        +"Ue18kWFmJEKjJ4Y+BouS9LhL8MU";
 
-    // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
     private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = (6) * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float mmTargetHeight   = (6) * mmPerInch;
 
     // Constant for Stone Target
     private static final float stoneZ = 2.00f * mmPerInch;
@@ -64,7 +84,7 @@ public class Mark_5 {
     private static final float bridgeZ = 6.42f * mmPerInch;
     private static final float bridgeY = 23 * mmPerInch;
     private static final float bridgeX = 5.18f * mmPerInch;
-    private static final float bridgeRotY = 59;                                 // Units are degrees
+    private static final float bridgeRotY = 59;
     private static final float bridgeRotZ = 180;
 
     // Constants for perimeter targets
@@ -81,11 +101,32 @@ public class Mark_5 {
 
     List<VuforiaTrackable> allTrackables;
 
+    private boolean isSkystone = false;
+
+    BNO055IMU imu;
+    Orientation angles;
+
+    //in meters or radians respectively unless specified
+    double odometryX;
+    double odometryY;
+    double odometryAngle, initialAngle;
+    double lastEncoderR, lastEncoderL;
+    double currentEncoderL, currentEncoderR;
+    DcMotor deadWheel;
+    final double ticksPerOdometryWheel = 1430;
+    //diameter in cm
+    final double odometryWheelDiameter = 7.62;
+    final double odometryWheelCirc = odometryWheelDiameter * Math.PI / 100;
+
     LinearOpMode ln;
     public Mark_5(LinearOpMode linear){
         ln = linear;
+        robotStatus = Status.PREINIT;
     }
-    public void initialize(HardwareMap hardwareMap){
+    public void initialize(HardwareMap hardwareMap, double startX, double startY, double startAngle){
+        this.setStatus(Status.INITIALIZING);
+
+        //***Main Robot init***
         lF = hardwareMap.dcMotor.get("lF");
         lB = hardwareMap.dcMotor.get("lB");
         rF = hardwareMap.dcMotor.get("rF");
@@ -110,6 +151,16 @@ public class Mark_5 {
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        //***Odometry init***
+        odometryX = startX;
+        odometryY = startY;
+        odometryAngle = ACMath.toStandardAngle(startAngle);
+        initialAngle = ACMath.toStandardAngle(startAngle);
+
+        deadWheel = hardwareMap.dcMotor.get("deadWheel");
+
+        //***Vuforia init
         /*
          * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
          * We can pass Vuforia the handle to a camera preview resource (on the RC phone);
@@ -277,14 +328,42 @@ public class Mark_5 {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
         }
         targetsSkyStone.activate();
+
+        //***IMU init***
+        BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
+        imuParameters.mode = BNO055IMU.SensorMode.IMU;
+        imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        imuParameters.loggingEnabled = false;
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(imuParameters);
+
+        while(imu.isGyroCalibrated()){
+            if(ln.isStopRequested()){
+                return;
+            }
+        }
+        this.setStatus(Status.INITIALIZED);
     }
+
+    public void forwardMeters(double power, double distance){
+
+    }
+
     public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
         for (VuforiaTrackable trackable : allTrackables) {
             if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                if (trackable.getName().equals("Stone Target")){
+                    isSkystone = true;
+                }else {
+                    isSkystone = false;
+                }
                 ln.telemetry.addData("Visible Target", trackable.getName());
+                ln.telemetry.addData("isSkystone", isSkystone);
                 targetVisible = true;
+
 
                 // getUpdatedRobotLocation() will return null if no new information is available since
                 // the last time that call was made, or if the trackable is not currently visible.
@@ -313,8 +392,33 @@ public class Mark_5 {
     }
 
 
-    public void strafe(double power){
-        double startAngle;
-        double turnOffset;
+    public void moveToSkystone(){
+
+    }
+    double startAngle;
+    public void strafe(double power) {
+        power *= 0.75;
+        if (getStatus() != Status.STRAFING) {
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.STRAFING);
+        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+        lF.setPower(power+turnOffset);
+        lB.setPower(-power+turnOffset);
+        rF.setPower(-power-turnOffset);
+        rB.setPower(power-turnOffset);
+    }
+    public void strafe(double power, double distance){
+        if (!(robotStatus == Status.STRAFING)) {
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.STRAFING);
+        //TO-DO
+    }
+
+    public double getHeading(){
+        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        imu.getPosition();
+        return ACMath.toStandardAngle(Math.toRadians(angles.firstAngle)+initialAngle);
     }
 }
