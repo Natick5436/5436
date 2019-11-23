@@ -9,7 +9,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
     Mark_5 robot = new Mark_5(this);
 
     @Override
-    public void runOpMode(){
+    public void runOpMode() throws InterruptedException{
         robot.initialize(hardwareMap,0,0,0);
 
         waitForStart();
