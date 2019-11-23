@@ -33,7 +33,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class Mark_5 {
-    enum Status {STRAFING, DRIVING, INITIALIZING, INITIALIZED, PREINIT}
+    enum Status {STRAFING, DRIVING, TURNING, INITIALIZING, INITIALIZED, PREINIT}
     private Status robotStatus;
     public void setStatus(Status s){
         robotStatus = s;
@@ -114,11 +114,25 @@ public class Mark_5 {
     double odometryAngle, initialAngle;
     double lastEncoderR, lastEncoderL;
     double currentEncoderL, currentEncoderR;
+
+    //wheel Diameter in cm
+    final double wheelDiameter = 10.0;
+    //wheel Circumference in meters
+    final double wheelCirc = wheelDiameter * Math.PI/100;
+    //ticks per full revolution of the motor axle
+    final double ticksPerMotorRev = 537.6;
+    final double motorGearRatio = 1.0;
+    //ticks per full revolution of the wheel
+    final double ticksPer = motorGearRatio*ticksPerMotorRev;
+
     DcMotor deadWheel;
     final double ticksPerOdometryWheel = 1430;
     //diameter in cm
     final double odometryWheelDiameter = 7.62;
     final double odometryWheelCirc = odometryWheelDiameter * Math.PI / 100;
+
+    final double angleAccuracy = 0.005;
+    final double distanceAccuracy = 0.01;
 
     LinearOpMode ln;
     public Mark_5(LinearOpMode linear){
@@ -160,6 +174,8 @@ public class Mark_5 {
         initialAngle = ACMath.toStandardAngle(startAngle);
 
         deadWheel = hardwareMap.dcMotor.get("deadWheel");
+        deadWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        deadWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         //***Vuforia init***
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -297,9 +313,6 @@ public class Mark_5 {
         ln.telemetry.addData("Status","Ready");
         ln.telemetry.update();
     }
-    public void forwardMeters(double power, double distance){
-      
-    }
 
     public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
@@ -342,11 +355,139 @@ public class Mark_5 {
         }
     }
 
-    public void moveToSkystone(){
-
+    public void updateLinearOdometryData(){
+        odometryAngle = getHeading();
+        currentEncoderL = lF.getCurrentPosition();
+        currentEncoderR = rF.getCurrentPosition();
+        double deltaTickL = currentEncoderL - lastEncoderL;
+        double deltaTickR = currentEncoderR - lastEncoderR;
+        double dL = wheelCirc * deltaTickL / ticksPer;
+        double dR = wheelCirc * deltaTickR / ticksPer;
+        double dM = (dL + dR) / 2;
+        odometryX = odometryX + (dM * Math.cos(odometryAngle));
+        odometryY = odometryY + (dM * Math.sin(odometryAngle));
+        lastEncoderL = currentEncoderL;
+        lastEncoderR = currentEncoderR;
     }
-  
+
     double startAngle;
+    public void forward(double power){
+        power *= 0.75;
+        if(getStatus() != Status.DRIVING){
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.DRIVING);
+        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+        lF.setPower(power+turnOffset);
+        lB.setPower(power+turnOffset);
+        rF.setPower(power-turnOffset);
+        rB.setPower(power-turnOffset);
+    }
+
+    //this function only takes inputs from the front wheels of the robot
+    public void forward(double power, double meters){
+        power *= 0.75;
+        if(getStatus() != Status.DRIVING){
+            startAngle = getHeading();
+        }
+        double targetTickDelta = (meters / wheelCirc)*ticksPer;
+        double targetTickR = targetTickDelta+rF.getCurrentPosition();
+        double targetTickL = targetTickDelta+lF.getCurrentPosition();
+        double deltatickR;
+        double deltatickL;
+        this.setStatus(Status.DRIVING);
+        double turnOffset;
+        while (Math.abs(rF.getCurrentPosition()-targetTickR) >= (distanceAccuracy/wheelCirc)*ticksPer || Math.abs(lF.getCurrentPosition()-targetTickL) >= (distanceAccuracy/wheelCirc)*ticksPer) {
+            turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+            deltatickL = targetTickL - lF.getCurrentPosition();
+            deltatickR = targetTickR - rF.getCurrentPosition();
+            if(rF.getCurrentPosition() != targetTickR) {
+                rF.setPower((power * (Math.abs(deltatickR) / deltatickR))-turnOffset);
+                rB.setPower((power * (Math.abs(deltatickR) / deltatickR))-turnOffset);
+            }else{
+                rF.setPower(0);
+                rB.setPower(0);
+            }
+            if (lF.getCurrentPosition() != targetTickL) {
+                lF.setPower((power * (Math.abs(deltatickL) / deltatickL))+turnOffset);
+                lB.setPower((power * (Math.abs(deltatickL) / deltatickL))+turnOffset);
+            }else{
+                lF.setPower(0);
+                lB.setPower(0);
+            }
+            ln.telemetry.addData("left encoder", lF.getCurrentPosition());
+            ln.telemetry.addData("right encoder", rF.getCurrentPosition());
+            ln.telemetry.addData("targetTickL", targetTickL);
+            ln.telemetry.addData("targetTickR", targetTickR);
+            ln.telemetry.update();
+            if(ln.isStopRequested())return;
+            updateLinearOdometryData();
+        }
+        lF.setPower(0);
+        rF.setPower(0);
+        lB.setPower(0);
+        rB.setPower(0);
+    }
+
+    public void turn(double power){
+        this.setStatus(Status.TURNING);
+        rF.setPower(power);
+        rB.setPower(power);
+        lF.setPower(-power);
+        lB.setPower(-power);
+    }
+
+    public void turn(double power, double targetAngle){
+        odometryAngle = getHeading();
+        double targetAngleDelta = targetAngle - odometryAngle;
+        /*if(ACMath.compassAngleShorter(targetAngle, odometryAngle)) {
+            targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(odometryAngle);
+        }else{
+            targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(odometryAngle);
+        }*/
+        double targetAngleAbs = Math.abs(targetAngleDelta);
+        boolean sw = false;
+        if (targetAngleDelta < 0)
+            sw = true;
+        if (targetAngleDelta > 0)
+            sw = false;
+        int decreaseRate = 0;
+        while (targetAngleAbs >= angleAccuracy){
+            odometryAngle = getHeading();
+            if (targetAngleDelta > 0){
+                rF.setPower(-power / decreaseRate);
+                rB.setPower(-power / decreaseRate);
+                lF.setPower(power / decreaseRate);
+                lB.setPower(power / decreaseRate);
+                if(sw == false){
+                    decreaseRate++;
+                }
+                sw = true;
+            }
+            if (targetAngleDelta < 0){
+                lF.setPower(-power /  decreaseRate);
+                lB.setPower(-power /  decreaseRate);
+                rF.setPower(power / decreaseRate);
+                rB.setPower(power / decreaseRate);
+                if(sw == true){
+                    decreaseRate++;
+                }
+                sw = false;
+            }
+            targetAngleDelta = targetAngle - odometryAngle;
+            targetAngleAbs = Math.abs(targetAngleDelta);
+            if(ln.isStopRequested())return;
+            ln.telemetry.addData("targetAngleDelta", targetAngleDelta);
+            ln.telemetry.addData("odometryAngle", odometryAngle);
+            ln.telemetry.addData("targetAngle", targetAngle);
+            ln.telemetry.update();
+        }
+        rF.setPower(0);
+        rB.setPower(0);
+        lF.setPower(0);
+        lB.setPower(0);
+    }
+
     public void strafe(double power) {
         power *= 0.75;
         if (getStatus() != Status.STRAFING) {
@@ -365,7 +506,19 @@ public class Mark_5 {
             startAngle = getHeading();
         }
         this.setStatus(Status.STRAFING);
-        //TO-DO
+        double turnOffset;
+        while(Math.abs(distance-(deadWheel.getCurrentPosition()*odometryWheelCirc/ticksPerOdometryWheel)) > distanceAccuracy){
+            turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+            lF.setPower(power+turnOffset);
+            lB.setPower(-power+turnOffset);
+            rF.setPower(-power-turnOffset);
+            rB.setPower(power-turnOffset);
+            if(ln.isStopRequested()){return;}
+        }
+        lF.setPower(0);
+        lB.setPower(0);
+        rF.setPower(0);
+        rB.setPower(0);
     }
   
     public double getHeading(){

@@ -141,7 +141,6 @@ public class Mark_4{
         odometryY = odometryY + (dM * Math.sin(odometryAngle));
         lastEncoderL = currentEncoderL;
         lastEncoderR = currentEncoderR;
-
     }
     public void setOdometryPosition(double x, double y){
         odometryX = x;
