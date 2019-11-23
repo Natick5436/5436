@@ -439,12 +439,13 @@ public class Mark_5 {
 
     public void turn(double power, double targetAngle){
         odometryAngle = getHeading();
-        double targetAngleDelta = targetAngle - odometryAngle;
-        /*if(ACMath.compassAngleShorter(targetAngle, odometryAngle)) {
-            targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(odometryAngle);
+        double angle = odometryAngle;
+        double targetAngleDelta;
+        if(ACMath.compassAngleShorter(targetAngle, angle)) {
+            targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
         }else{
-            targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(odometryAngle);
-        }*/
+            targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+        }
         double targetAngleAbs = Math.abs(targetAngleDelta);
         boolean sw = false;
         if (targetAngleDelta < 0)
@@ -453,7 +454,6 @@ public class Mark_5 {
             sw = false;
         int decreaseRate = 0;
         while (targetAngleAbs >= angleAccuracy){
-            odometryAngle = getHeading();
             if (targetAngleDelta > 0){
                 rF.setPower(-power / decreaseRate);
                 rB.setPower(-power / decreaseRate);
@@ -474,11 +474,16 @@ public class Mark_5 {
                 }
                 sw = false;
             }
-            targetAngleDelta = targetAngle - odometryAngle;
+            odometryAngle = getHeading();
+            if(ACMath.compassAngleShorter(targetAngle, angle)) {
+                targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+            }else{
+                targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+            }
             targetAngleAbs = Math.abs(targetAngleDelta);
             if(ln.isStopRequested())return;
             ln.telemetry.addData("targetAngleDelta", targetAngleDelta);
-            ln.telemetry.addData("odometryAngle", odometryAngle);
+            ln.telemetry.addData("odometryAngle", angle);
             ln.telemetry.addData("targetAngle", targetAngle);
             ln.telemetry.update();
         }
