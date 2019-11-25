@@ -103,7 +103,9 @@ public class Mark_5 {
 
     List<VuforiaTrackable> allTrackables;
 
-    private boolean isSkystone = false;
+    private boolean skystone;
+    private VectorF skystonePosition;
+    private Orientation skystoneOrientation;
 
     BNO055IMU imu;
     Orientation angles;
@@ -138,6 +140,7 @@ public class Mark_5 {
     public Mark_5(LinearOpMode linear){
         ln = linear;
         robotStatus = Status.PREINIT;
+        skystone = false;
     }
     public void initialize(HardwareMap hardwareMap, double startX, double startY, double startAngle){
         this.setStatus(Status.INITIALIZING);
@@ -320,12 +323,12 @@ public class Mark_5 {
         for (VuforiaTrackable trackable : allTrackables) {
             if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
                 if (trackable.getName().equals("Stone Target")){
-                    isSkystone = true;
+                    skystone = true;
                 }else {
-                    isSkystone = false;
+                    skystone = false;
                 }
                 ln.telemetry.addData("Visible Target", trackable.getName());
-                ln.telemetry.addData("isSkystone", isSkystone);
+                ln.telemetry.addData("isSkystone", skystone);
                 targetVisible = true;
 
 
@@ -343,16 +346,27 @@ public class Mark_5 {
         if (targetVisible) {
             // express position (translation) of robot in inches.
             VectorF translation = lastLocation.getTranslation();
+            skystonePosition = lastLocation.getTranslation();
             ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                     translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
 
             // express the rotation of the robot in degrees.
             Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
+            skystoneOrientation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
             ln.telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
         }
         else {
             ln.telemetry.addData("Visible Target", "none");
         }
+    }
+    public boolean isSkystone(){
+        return skystone;
+    }
+    public VectorF getSkystonePosition(){
+        return skystonePosition;
+    }
+    public Orientation getSkystoneOrientation(){
+        return skystoneOrientation;
     }
 
     public void updateLinearOdometryData(){
