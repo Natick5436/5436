@@ -383,6 +383,10 @@ public class Mark_5 {
         lastEncoderL = currentEncoderL;
         lastEncoderR = currentEncoderR;
     }
+    public void setOdometryPosition(double x, double y){
+        odometryX = x;
+        odometryY = y;
+    }
 
     double startAngle;
     public void forward(double power){
