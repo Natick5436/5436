@@ -43,7 +43,7 @@ public class Mark_5 {
     }
 
     DcMotor arm, lF, lB, rF, rB;
-    Servo flip, clamp;
+    Servo flip, clamp, grabL, grabR;
 
     public int encoderCount = 0;
 
@@ -164,6 +164,13 @@ public class Mark_5 {
 
         flip = hardwareMap.servo.get("flip");
         clamp = hardwareMap.servo.get("clamp");
+        grabL = hardwareMap.servo.get("grabL");
+        grabR = hardwareMap.servo.get("grabR");
+
+        grabR.setDirection(Servo.Direction.REVERSE);
+
+        grabL.setPosition(1);
+        grabR.setPosition(1);
 
         lF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
