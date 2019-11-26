@@ -19,7 +19,6 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
 
         waitForStart();
 
-        
 
     }
 }
