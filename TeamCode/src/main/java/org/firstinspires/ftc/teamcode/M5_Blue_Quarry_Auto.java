@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-@Autonomous(name = "M5 Red Quarry", group = "Autonomous")
-public class M5_Red_Quarry_Auto extends LinearOpMode {
+@Autonomous(name = "M5 Blue Quarry", group = "Autonomous")
+public class M5_Blue_Quarry_Auto extends LinearOpMode {
 
     Mark_5 robot = new Mark_5(this);
 
@@ -22,7 +22,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH, QUARRY_LENGTH / 2, 0);
+        robot.initialize(hardwareMap, ROBOT_WIDTH, QUARRY_LENGTH/2, 0);
 
         waitForStart();
 
@@ -38,7 +38,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
             robot.updateVuforia();
             telemetry.update();
         }
-        robot.setOdometryPosition(FIELD_WIDTH-ROBOT_WIDTH, QUARRY_LENGTH/2 + skystoneDelta);
+        robot.setOdometryPosition(ROBOT_WIDTH, QUARRY_LENGTH/2 - skystoneDelta);
         robot.forward(0.5, DISTANCE_TO_STONES);
     }
 }
