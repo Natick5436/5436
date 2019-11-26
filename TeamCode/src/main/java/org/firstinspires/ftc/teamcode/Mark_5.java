@@ -549,4 +549,18 @@ public class Mark_5 {
         imu.getPosition();
         return ACMath.toStandardAngle(Math.toRadians(angles.firstAngle)+initialAngle);
     }
+
+    public String toString(){
+        String value = "Mark 5\n";
+        value += "Status: " + robotStatus;
+        value += "leftFront encoder: " + lF.getCurrentPosition() + "\n";
+        value += "leftBack encoder: " + lB.getCurrentPosition() + "\n";
+        value += "rightFront encoder: " + rF.getCurrentPosition() + "\n";
+        value += "rightBack encoder: " + rB.getCurrentPosition() + "\n";
+        value += "Odometry position: (" + odometryX + ", " + odometryY + ")" + "\n";
+        value += "Heading angle: " + getHeading() + "\n";
+        value += "Skystone: " + skystone + "\n";
+        value += "Robot running in " + ln + "\n";
+        return value;
+    }
 }
