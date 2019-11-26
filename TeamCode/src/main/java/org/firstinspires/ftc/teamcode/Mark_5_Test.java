@@ -63,7 +63,7 @@ public class Mark_5_Test extends LinearOpMode {
                 robot.rB.setPower(0.5*gamepad1.right_stick_y);
                 robot.setStatus(Mark_5.Status.DRIVING);
             }
-            robot.grabL.setPosition(gamepad1.left_trigger);
+            robot.grabL.setPosition(gamepad1.right_trigger);
             robot.grabR.setPosition(gamepad1.right_trigger);
             robot.updateVuforia();
             telemetry.addData("Heading", robot.getHeading());
