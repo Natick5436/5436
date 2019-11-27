@@ -22,7 +22,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH, QUARRY_LENGTH / 2, 0);
+        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH, QUARRY_LENGTH / 2, Math.PI);
 
         waitForStart();
 
