@@ -396,13 +396,21 @@ public class Mark_5 {
     }
 
     double startAngle;
+    final double percentCorrection = 0.25;
+    final double maxCorrectionAngle = Math.PI/6;
     public void forward(double power){
-        power *= 0.75;
+        double correctionIntensity = percentCorrection * power;
+        power *= (1-percentCorrection);
         if(getStatus() != Status.DRIVING){
             startAngle = getHeading();
         }
         this.setStatus(Status.DRIVING);
-        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+        double turnOffset;
+        if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+            turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+        }else{
+            turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+        }
         lF.setPower(power+turnOffset);
         lB.setPower(power+turnOffset);
         rF.setPower(power-turnOffset);
@@ -411,7 +419,8 @@ public class Mark_5 {
 
     //this function only takes inputs from the front wheels of the robot
     public void forward(double power, double meters){
-        power *= 0.75;
+        double correctionIntensity = percentCorrection * power;
+        power *= (1-percentCorrection);
         if(getStatus() != Status.DRIVING){
             startAngle = getHeading();
         }
@@ -423,7 +432,11 @@ public class Mark_5 {
         this.setStatus(Status.DRIVING);
         double turnOffset;
         while (Math.abs(rF.getCurrentPosition()-targetTickR) >= (distanceAccuracy/wheelCirc)*ticksPer || Math.abs(lF.getCurrentPosition()-targetTickL) >= (distanceAccuracy/wheelCirc)*ticksPer) {
-            turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+            if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+                turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+            }else{
+                turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+            }
             deltatickL = targetTickL - lF.getCurrentPosition();
             deltatickR = targetTickR - rF.getCurrentPosition();
             if(rF.getCurrentPosition() != targetTickR) {
@@ -519,12 +532,18 @@ public class Mark_5 {
     }
 
     public void strafe(double power) {
-        power *= 0.75;
+        double correctionIntensity = percentCorrection * power;
+        power *= (1-percentCorrection);
         if (getStatus() != Status.STRAFING) {
             startAngle = getHeading();
         }
         this.setStatus(Status.STRAFING);
-        double turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+        double turnOffset;
+        if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+            turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+        }else{
+            turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+        }
         lF.setPower(power+turnOffset);
         lB.setPower(-power+turnOffset);
         rF.setPower(-power-turnOffset);
@@ -532,13 +551,19 @@ public class Mark_5 {
     }
 
     public void strafe(double power, double distance){
+        double correctionIntensity = percentCorrection * power;
+        power *= (1-percentCorrection);
         if (!(robotStatus == Status.STRAFING)) {
             startAngle = getHeading();
         }
         this.setStatus(Status.STRAFING);
         double turnOffset;
         while(Math.abs(distance-(deadWheel.getCurrentPosition()*odometryWheelCirc/ticksPerOdometryWheel)) > distanceAccuracy){
-            turnOffset = Range.clip(0.25*(getHeading()-startAngle)/(Math.PI/8), -0.25, 0.25);
+            if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+                turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+            }else{
+                turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+            }
             lF.setPower(power+turnOffset);
             lB.setPower(-power+turnOffset);
             rF.setPower(-power-turnOffset);
@@ -560,9 +585,13 @@ public class Mark_5 {
     public String toString(){
         String value = "Mark 5\n";
         value += "Status: " + robotStatus;
+        value += "leftFront Config: " + lF.toString();
         value += "leftFront encoder: " + lF.getCurrentPosition() + "\n";
+        value += "leftBack Config: " + lB.toString();
         value += "leftBack encoder: " + lB.getCurrentPosition() + "\n";
+        value += "rightFront Config: " + rF.toString();
         value += "rightFront encoder: " + rF.getCurrentPosition() + "\n";
+        value += "rightBack Config: " + rB.toString();
         value += "rightBack encoder: " + rB.getCurrentPosition() + "\n";
         value += "Odometry position: (" + odometryX + ", " + odometryY + ")" + "\n";
         value += "Heading angle: " + getHeading() + "\n";
