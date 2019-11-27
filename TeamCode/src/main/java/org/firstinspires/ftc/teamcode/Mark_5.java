@@ -416,7 +416,6 @@ public class Mark_5 {
         rF.setPower(power-turnOffset);
         rB.setPower(power-turnOffset);
     }
-
     //this function only takes inputs from the front wheels of the robot
     public void forward(double power, double meters){
         double correctionIntensity = percentCorrection * power;
@@ -474,7 +473,6 @@ public class Mark_5 {
         lF.setPower(-power);
         lB.setPower(-power);
     }
-
     public void turn(double power, double targetAngle){
         odometryAngle = getHeading();
         double angle = odometryAngle;
@@ -549,7 +547,6 @@ public class Mark_5 {
         rF.setPower(-power-turnOffset);
         rB.setPower(power-turnOffset);
     }
-
     public void strafe(double power, double distance){
         double correctionIntensity = percentCorrection * power;
         power *= (1-percentCorrection);
@@ -575,6 +572,19 @@ public class Mark_5 {
         rF.setPower(0);
         rB.setPower(0);
     }
+
+    public void goToDeltaPosition(double power, double meters, double targetAngle){
+        turn(power, targetAngle);
+        forward(power, meters);
+    }
+    public void goToAbsolutePosition(double power, double x, double y){
+        double deltaX = x-odometryX;
+        double deltaY = y-odometryY;
+        double angle = Math.atan2(deltaY, deltaX);
+        double distance = Math.hypot(deltaY, deltaX);
+        goToDeltaPosition(distance, angle, power);
+    }
+
   
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
