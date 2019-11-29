@@ -415,6 +415,7 @@ public class Mark_5 {
         lB.setPower(power+turnOffset);
         rF.setPower(power-turnOffset);
         rB.setPower(power-turnOffset);
+        updateLinearOdometryData();
     }
     //this function only takes inputs from the front wheels of the robot
     public void forward(double power, double meters){
