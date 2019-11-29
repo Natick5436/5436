@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-@Autonomous(name = "Noland Is A Bad Teacher", group = "Autonomous")
-public class Noland_Is_A_Bad_Teacher_Autonomus extends LinearOpMode {
+@Autonomous(name = "Straight Forward Auto", group = "Autonomous")
+public class Straight_Forward_Auto extends LinearOpMode {
 
         Mark_5 robot = new Mark_5(this);
 
