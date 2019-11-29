@@ -12,13 +12,17 @@ public class M5_Red_Build_Auto extends LinearOpMode {
     final double ROBOT_WIDTH = 0.4572;
     final double DISTANCE_TO_STONES = 1.1938;
     final double QUARRY_LENGTH = 1.2319;
-    final double ARM_LENGTH = 0.25;
+    final double ARM_LENGTH = 0.16;
     final double FOUNDATION_LENGTH = 0.8763;
     final double FOUNDATION_WIDTH = 0.4699;
     final double WALL_TO_FOUNDATION = 0.1016;
     final double START_TO_FOUNDATION = 1.20015;
 
-    final double metersPerInch = 0.0254;
+    final double metersPerMm = 0.001;
+
+    final int X = 0;
+    final int Y = 1;
+    final int Z = 2;
 
     @Override
     public void runOpMode(){

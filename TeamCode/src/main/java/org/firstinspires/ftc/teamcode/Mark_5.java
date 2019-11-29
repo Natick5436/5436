@@ -42,7 +42,7 @@ public class Mark_5 {
         return robotStatus;
     }
 
-    DcMotor arm, lF, lB, rF, rB;
+    DcMotor liftL, liftR, arm, lF, lB, rF, rB;
     Servo flip, clamp, grabL, grabR;
 
     public int encoderCount = 0;
@@ -135,6 +135,7 @@ public class Mark_5 {
 
     final double angleAccuracy = 0.005;
     final double distanceAccuracy = 0.01;
+    final int armAccuracy = 10;
 
     //Init methods
     LinearOpMode ln;
@@ -161,7 +162,14 @@ public class Mark_5 {
         rB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         arm = hardwareMap.dcMotor.get("arm");
+        liftL = hardwareMap.dcMotor.get("liftL");
+        liftR = hardwareMap.dcMotor.get("liftR");
+
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        liftL.setDirection(DcMotorSimple.Direction.REVERSE);
 
         flip = hardwareMap.servo.get("flip");
         clamp = hardwareMap.servo.get("clamp");
@@ -177,6 +185,9 @@ public class Mark_5 {
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //***Odometry init***
         odometryX = startX;
@@ -591,6 +602,16 @@ public class Mark_5 {
     public void setGrab(double position){
         grabL.setPosition(position);
         grabR.setPosition(position);
+    }
+    public void setArm(double power, double position){
+        while(Math.abs(position-arm.getCurrentPosition()) > armAccuracy){
+            arm.setPower(power*(Math.abs(position-arm.getCurrentPosition())/(position-arm.getCurrentPosition())));
+            if(ln.isStopRequested())return;
+            ln.telemetry.addData("Arm position", arm.getCurrentPosition());
+            ln.telemetry.addData("Goal position", position);
+            ln.telemetry.update();
+        }
+        arm.setPower(0);
     }
 
     //Misc methods
