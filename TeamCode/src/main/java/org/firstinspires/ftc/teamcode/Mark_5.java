@@ -380,12 +380,15 @@ public class Mark_5 {
         }
     }
     public boolean isSkystone(){
+        updateVuforia();
         return skystone;
     }
     public VectorF getSkystonePosition(){
+        updateVuforia();
         return skystonePosition;
     }
     public Orientation getSkystoneOrientation(){
+        updateVuforia();
         return skystoneOrientation;
     }
 
@@ -446,7 +449,8 @@ public class Mark_5 {
         double deltatickL;
         this.setStatus(Status.DRIVING);
         double turnOffset;
-        while (Math.abs(rF.getCurrentPosition()-targetTickR) >= (distanceAccuracy/wheelCirc)*ticksPer || Math.abs(lF.getCurrentPosition()-targetTickL) >= (distanceAccuracy/wheelCirc)*ticksPer) {
+        //(Math.abs(rF.getCurrentPosition()-targetTickR) + Math.abs(lF.getCurrentPosition()-targetTickL))/2 >= (distanceAccuracy/wheelCirc)*ticksPer
+        while ((Math.abs(rF.getCurrentPosition()-targetTickR) + Math.abs(lF.getCurrentPosition()-targetTickL))/2 >= (distanceAccuracy/wheelCirc)*ticksPer) {
             if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
                 turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
             }else{
@@ -510,7 +514,7 @@ public class Mark_5 {
                 rB.setPower(-power / decreaseRate);
                 lF.setPower(power / decreaseRate);
                 lB.setPower(power / decreaseRate);
-                if(sw == false){
+                if(!sw){
                     decreaseRate++;
                 }
                 sw = true;
@@ -520,7 +524,7 @@ public class Mark_5 {
                 lB.setPower(-power /  decreaseRate);
                 rF.setPower(power / decreaseRate);
                 rB.setPower(power / decreaseRate);
-                if(sw == true){
+                if(sw){
                     decreaseRate++;
                 }
                 sw = false;
