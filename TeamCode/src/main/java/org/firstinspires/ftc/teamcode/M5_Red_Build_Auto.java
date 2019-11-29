@@ -14,7 +14,9 @@ public class M5_Red_Build_Auto extends LinearOpMode {
     final double QUARRY_LENGTH = 1.2319;
     final double ARM_LENGTH = 0.25;
     final double FOUNDATION_LENGTH = 0.8763;
+    final double FOUNDATION_WIDTH = 0.4699;
     final double WALL_TO_FOUNDATION = 0.1016;
+    final double START_TO_FOUNDATION = 1.20015;
 
     final double metersPerInch = 0.0254;
 
@@ -23,5 +25,13 @@ public class M5_Red_Build_Auto extends LinearOpMode {
         robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH, FIELD_WIDTH - (WALL_TO_FOUNDATION + FOUNDATION_LENGTH/2), Math.PI);
 
         waitForStart();
+
+        robot.forward(1, START_TO_FOUNDATION-ROBOT_WIDTH);
+        robot.setGrab(1);
+        robot.forward(1, -((FOUNDATION_LENGTH/2)-0.05));
+        robot.turn(1, Math.PI/2);
+        robot.forward(1, FOUNDATION_WIDTH);
+        robot.setGrab(0);
+        robot.goToAbsolutePosition(1, FIELD_WIDTH-(ROBOT_WIDTH/2+0.03), FIELD_WIDTH/2);
     }
 }

@@ -13,6 +13,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
     final double DISTANCE_TO_STONES = 1.1938;
     final double QUARRY_LENGTH = 1.2319;
     final double ARM_LENGTH = 0.25;
+    final double START_TO_FOUNDATION = 1.20015;
 
     final double metersPerInch = 0.0254;
 

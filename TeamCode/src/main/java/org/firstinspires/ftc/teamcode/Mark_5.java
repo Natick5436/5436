@@ -136,6 +136,7 @@ public class Mark_5 {
     final double angleAccuracy = 0.005;
     final double distanceAccuracy = 0.01;
 
+    //Init methods
     LinearOpMode ln;
     public Mark_5(LinearOpMode linear){
         ln = linear;
@@ -324,6 +325,7 @@ public class Mark_5 {
         ln.telemetry.update();
     }
 
+    //Vuforia methods
     public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
@@ -376,6 +378,7 @@ public class Mark_5 {
         return skystoneOrientation;
     }
 
+    //Odometry methods
     public void updateLinearOdometryData(){
         odometryAngle = getHeading();
         currentEncoderL = lF.getCurrentPosition();
@@ -395,8 +398,9 @@ public class Mark_5 {
         odometryY = y;
     }
 
+    //Movement methods
     double startAngle;
-    final double percentCorrection = 0.25;
+    final double percentCorrection = 0.15;
     final double maxCorrectionAngle = Math.PI/6;
     public void forward(double power){
         double correctionIntensity = percentCorrection * power;
@@ -466,7 +470,6 @@ public class Mark_5 {
         lB.setPower(0);
         rB.setPower(0);
     }
-
     public void turn(double power){
         this.setStatus(Status.TURNING);
         rF.setPower(power);
@@ -529,7 +532,6 @@ public class Mark_5 {
         lF.setPower(0);
         lB.setPower(0);
     }
-
     public void strafe(double power) {
         double correctionIntensity = percentCorrection * power;
         power *= (1-percentCorrection);
@@ -573,7 +575,6 @@ public class Mark_5 {
         rF.setPower(0);
         rB.setPower(0);
     }
-
     public void goToDeltaPosition(double power, double meters, double targetAngle){
         turn(power, targetAngle);
         forward(power, meters);
@@ -586,13 +587,18 @@ public class Mark_5 {
         goToDeltaPosition(distance, angle, power);
     }
 
-  
+    //Manips methods
+    public void setGrab(double position){
+        grabL.setPosition(position);
+        grabR.setPosition(position);
+    }
+
+    //Misc methods
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         imu.getPosition();
         return ACMath.toStandardAngle(Math.toRadians(angles.firstAngle)+initialAngle);
     }
-
     public String toString(){
         String value = "Mark 5\n";
         value += "Status: " + robotStatus;
