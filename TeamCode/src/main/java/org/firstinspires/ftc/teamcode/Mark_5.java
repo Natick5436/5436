@@ -33,7 +33,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class Mark_5 {
-    enum Status {STRAFING, DRIVING, TURNING, INITIALIZING, INITIALIZED, PREINIT}
+    enum Status {STRAFING, DRIVING, TURNING, ANGLE_STRAFING, INITIALIZING, INITIALIZED, PREINIT}
     private Status robotStatus;
     public void setStatus(Status s){
         robotStatus = s;
@@ -589,6 +589,24 @@ public class Mark_5 {
         lB.setPower(0);
         rF.setPower(0);
         rB.setPower(0);
+    }
+    public void angleStrafe(double power, double angle){
+        double correctionIntensity = percentCorrection * power;
+        power *= (1-percentCorrection);
+        if (getStatus() != Status.ANGLE_STRAFING) {
+            startAngle = getHeading();
+        }
+        this.setStatus(Status.ANGLE_STRAFING);
+        double turnOffset;
+        if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+            turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+        }else{
+            turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+        }
+        lF.setPower(-1*power*Math.sin(angle + 3*Math.PI/4)+turnOffset);
+        lB.setPower(-1*power*Math.sin(angle + Math.PI/4)+turnOffset);
+        rB.setPower(-1*power*Math.sin(angle + 3*Math.PI/4)-turnOffset);
+        rF.setPower(-1*power*Math.sin(angle + Math.PI/4)-turnOffset);
     }
     public void goToDeltaPosition(double power, double meters, double targetAngle){
         turn(power, targetAngle);
