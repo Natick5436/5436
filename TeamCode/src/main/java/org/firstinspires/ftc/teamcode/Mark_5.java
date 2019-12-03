@@ -603,10 +603,10 @@ public class Mark_5 {
         }else{
             turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
         }
-        lF.setPower(-1*power*Math.sin(angle + 3*Math.PI/4)+turnOffset);
-        lB.setPower(-1*power*Math.sin(angle + Math.PI/4)+turnOffset);
-        rB.setPower(-1*power*Math.sin(angle + 3*Math.PI/4)-turnOffset);
-        rF.setPower(-1*power*Math.sin(angle + Math.PI/4)-turnOffset);
+        lF.setPower(power*Math.sin(angle + Math.PI/4)+turnOffset);
+        lB.setPower(power*Math.sin(angle - Math.PI/4)+turnOffset);
+        rB.setPower(power*Math.sin(angle + Math.PI/4)-turnOffset);
+        rF.setPower(power*Math.sin(angle - Math.PI/4)-turnOffset);
     }
     public void goToDeltaPosition(double power, double meters, double targetAngle){
         turn(power, targetAngle);
