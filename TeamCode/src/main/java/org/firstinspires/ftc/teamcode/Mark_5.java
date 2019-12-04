@@ -43,7 +43,7 @@ public class Mark_5 {
     }
 
     DcMotor liftL, liftR, arm, lF, lB, rF, rB;
-    Servo flip, clamp, grabL, grabR;
+    Servo flip, clamp, grabL, grabR, extensionL, extensionR, stoneL, stoneR;
 
     public int encoderCount = 0;
 
@@ -98,7 +98,7 @@ public class Mark_5 {
     private VuforiaLocalizer vuforia = null;
     private boolean targetVisible = false;
     private float phoneXRotate    = 0;
-    private float phoneYRotate    = 0;
+    private float phoneYRotate    = 180;
     private float phoneZRotate    = 0;
 
     List<VuforiaTrackable> allTrackables;
@@ -153,8 +153,8 @@ public class Mark_5 {
         rF = hardwareMap.dcMotor.get("rF");
         rB = hardwareMap.dcMotor.get("rB");
 
-        lF.setDirection(DcMotorSimple.Direction.REVERSE);
-        lB.setDirection(DcMotorSimple.Direction.REVERSE);
+        rF.setDirection(DcMotorSimple.Direction.REVERSE);
+        rB.setDirection(DcMotorSimple.Direction.REVERSE);
 
         lF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -175,11 +175,21 @@ public class Mark_5 {
         clamp = hardwareMap.servo.get("clamp");
         grabL = hardwareMap.servo.get("grabL");
         grabR = hardwareMap.servo.get("grabR");
+        extensionL = hardwareMap.servo.get("eL");
+        extensionR = hardwareMap.servo.get("eR");
+        stoneL = hardwareMap.servo.get("stoneL");
+        stoneR = hardwareMap.servo.get("stoneR");
 
         grabR.setDirection(Servo.Direction.REVERSE);
+        extensionR.setDirection(Servo.Direction.REVERSE);
+        stoneR.setDirection(Servo.Direction.REVERSE);
 
-        grabL.setPosition(1);
-        grabR.setPosition(1);
+        grabL.setPosition(0);
+        grabR.setPosition(0);
+        extensionL.setPosition(0.3);
+        extensionR.setPosition(0.5);
+        stoneL.setPosition(0.5);
+        stoneR.setPosition(0.5);
 
         lF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -496,20 +506,21 @@ public class Mark_5 {
         odometryAngle = getHeading();
         double angle = odometryAngle;
         double targetAngleDelta;
-        if(ACMath.compassAngleShorter(targetAngle, angle)) {
+        boolean useCompassAngle = ACMath.compassAngleShorter(targetAngle, angle);
+        if(useCompassAngle) {
             targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
         }else{
             targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
         }
         double targetAngleAbs = Math.abs(targetAngleDelta);
         boolean sw = false;
-        if (targetAngleDelta < 0)
-            sw = true;
         if (targetAngleDelta > 0)
+            sw = true;
+        if (targetAngleDelta < 0)
             sw = false;
         int decreaseRate = 0;
         while (targetAngleAbs >= angleAccuracy){
-            if (targetAngleDelta > 0){
+            if (targetAngleDelta < 0){
                 rF.setPower(-power / decreaseRate);
                 rB.setPower(-power / decreaseRate);
                 lF.setPower(power / decreaseRate);
@@ -519,7 +530,7 @@ public class Mark_5 {
                 }
                 sw = true;
             }
-            if (targetAngleDelta < 0){
+            if (targetAngleDelta > 0){
                 lF.setPower(-power /  decreaseRate);
                 lB.setPower(-power /  decreaseRate);
                 rF.setPower(power / decreaseRate);
@@ -530,7 +541,8 @@ public class Mark_5 {
                 sw = false;
             }
             odometryAngle = getHeading();
-            if(ACMath.compassAngleShorter(targetAngle, angle)) {
+            angle = odometryAngle;
+            if(useCompassAngle) {
                 targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
             }else{
                 targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
@@ -540,6 +552,8 @@ public class Mark_5 {
             ln.telemetry.addData("targetAngleDelta", targetAngleDelta);
             ln.telemetry.addData("odometryAngle", angle);
             ln.telemetry.addData("targetAngle", targetAngle);
+            ln.telemetry.addData("abs",targetAngleAbs);
+            ln.telemetry.addData("Compass Angle: ", useCompassAngle);
             ln.telemetry.update();
         }
         rF.setPower(0);
@@ -547,6 +561,64 @@ public class Mark_5 {
         lF.setPower(0);
         lB.setPower(0);
     }
+    public void turn(double power, double targetAngle,boolean override){
+        odometryAngle = getHeading();
+        double angle = odometryAngle;
+        double targetAngleDelta;
+        if(override) {
+            targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+        }else{
+            targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+        }
+        double targetAngleAbs = Math.abs(targetAngleDelta);
+        boolean sw = false;
+        if (targetAngleDelta > 0)
+            sw = true;
+        if (targetAngleDelta < 0)
+            sw = false;
+        int decreaseRate = 0;
+        while (targetAngleAbs >= angleAccuracy){
+            if (targetAngleDelta < 0){
+                rF.setPower(-power / decreaseRate);
+                rB.setPower(-power / decreaseRate);
+                lF.setPower(power / decreaseRate);
+                lB.setPower(power / decreaseRate);
+                if(!sw){
+                    decreaseRate++;
+                }
+                sw = true;
+            }
+            if (targetAngleDelta > 0){
+                lF.setPower(-power /  decreaseRate);
+                lB.setPower(-power /  decreaseRate);
+                rF.setPower(power / decreaseRate);
+                rB.setPower(power / decreaseRate);
+                if(sw){
+                    decreaseRate++;
+                }
+                sw = false;
+            }
+            odometryAngle = getHeading();
+            angle = odometryAngle;
+            if(override) {
+                targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+            }else{
+                targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+            }
+            targetAngleAbs = Math.abs(targetAngleDelta);
+            if(ln.isStopRequested())return;
+            ln.telemetry.addData("targetAngleDelta", targetAngleDelta);
+            ln.telemetry.addData("odometryAngle", angle);
+            ln.telemetry.addData("targetAngle", targetAngle);
+            ln.telemetry.addData("abs",targetAngleAbs);
+            ln.telemetry.update();
+        }
+        rF.setPower(0);
+        rB.setPower(0);
+        lF.setPower(0);
+        lB.setPower(0);
+    }
+
     public void strafe(double power) {
         double correctionIntensity = percentCorrection * power;
         power *= (1-percentCorrection);
@@ -612,11 +684,15 @@ public class Mark_5 {
         turn(power, targetAngle);
         forward(power, meters);
     }
-    public void goToAbsolutePosition(double power, double x, double y){
+    public void goToAbsolutePosition(double power, double x, double y)throws InterruptedException{
         double deltaX = x-odometryX;
         double deltaY = y-odometryY;
         double angle = Math.atan2(deltaY, deltaX);
         double distance = Math.hypot(deltaY, deltaX);
+        ln.telemetry.addData("targetAngle:", angle);
+        ln.telemetry.addData("Distance:", distance);
+        ln.telemetry.update();
+        Thread.sleep(5000);
         goToDeltaPosition(distance, angle, power);
     }
 

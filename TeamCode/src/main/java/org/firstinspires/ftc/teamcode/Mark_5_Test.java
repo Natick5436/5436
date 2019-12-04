@@ -106,10 +106,10 @@ public class Mark_5_Test extends LinearOpMode {
             }else if(gamepad1.dpad_down){
                 robot.forward(-drivePower);
             }else{
-                robot.lF.setPower(drivePower*gamepad1.left_stick_y);
-                robot.lB.setPower(drivePower*gamepad1.left_stick_y);
-                robot.rF.setPower(drivePower*gamepad1.right_stick_y);
-                robot.rB.setPower(drivePower*gamepad1.right_stick_y);
+                robot.lF.setPower(-drivePower*gamepad1.left_stick_y);
+                robot.lB.setPower(-drivePower*gamepad1.left_stick_y);
+                robot.rF.setPower(-drivePower*gamepad1.right_stick_y);
+                robot.rB.setPower(-drivePower*gamepad1.right_stick_y);
                 robot.setStatus(Mark_5.Status.DRIVING);
             }
 

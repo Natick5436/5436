@@ -41,7 +41,7 @@ public class M5_Blue_Build_Auto extends LinearOpMode {
     final double QUIT_X = (SKYBRIDGE_LENGTH/4);
     final double QUIT_Y = FIELD_WIDTH/2;
     @Override
-    public void runOpMode(){
+    public void runOpMode() throws InterruptedException{
         robot.initialize(hardwareMap, ROBOT_WIDTH/2, FIELD_WIDTH - (WALL_TO_FOUNDATION + FOUNDATION_LENGTH/2), 0);
 
         runtime.reset();
@@ -49,6 +49,7 @@ public class M5_Blue_Build_Auto extends LinearOpMode {
 
         robot.forward(1, START_TO_FOUNDATION-ROBOT_WIDTH);
         robot.setGrab(1);
+        sleep(1000);
         if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
