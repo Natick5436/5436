@@ -96,9 +96,9 @@ public class Mark_5_Test extends LinearOpMode {
 
             //Drive System
             if(gamepad1.left_bumper){
-                robot.angleStrafe(Math.hypot(gamepad1.right_stick_y, gamepad1.right_stick_x), Math.atan2(gamepad1.right_stick_y, gamepad1.right_stick_x));
+                robot.angleStrafe(drivePower*Math.hypot(gamepad1.right_stick_y, gamepad1.right_stick_x), Math.atan2(gamepad1.right_stick_y, gamepad1.right_stick_x));
             }else if(gamepad1.right_bumper){
-                robot.angleStrafe(Math.hypot(gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x));
+                robot.angleStrafe(drivePower*Math.hypot(gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x));
             }else if((gamepad1.right_trigger-gamepad1.left_trigger) != 0){
                 robot.strafe(drivePower*(gamepad1.right_trigger-gamepad1.left_trigger));
             }else if(gamepad1.dpad_up){
