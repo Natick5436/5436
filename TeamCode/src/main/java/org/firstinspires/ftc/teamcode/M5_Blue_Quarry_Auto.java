@@ -43,7 +43,7 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap, ROBOT_WIDTH, QUARRY_LENGTH/2, 0);
+        robot.initialize(hardwareMap, ROBOT_WIDTH/2, QUARRY_LENGTH/2, 0);
 
         runtime.reset();
         waitForStart();
@@ -60,14 +60,14 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
             robot.updateVuforia();
             telemetry.update();
         }
-        robot.setOdometryPosition(ROBOT_WIDTH, QUARRY_LENGTH/2 - skystoneDelta);
+        robot.setOdometryPosition(ROBOT_WIDTH/2, QUARRY_LENGTH/2 - skystoneDelta);
 
         robot.setArm(1, ARM_MID);
         robot.clamp.setPosition(CLAMP_OPEN);
         robot.flip.setPosition(FLIP_COLLECT);
         robot.setArm(1, ARM_OUT);
 
-        robot.forward(1, DISTANCE_TO_STONES-ARM_LENGTH);
+        robot.forward(1, DISTANCE_TO_STONES-ARM_LENGTH-ROBOT_WIDTH);
         robot.clamp.setPosition(CLAMP_CLOSE);
 
         robot.setArm(1, ARM_MID);
@@ -92,7 +92,7 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
             return;
         }
 
-        robot.goToAbsolutePosition(1, ROBOT_WIDTH, QUARRY_LENGTH/2);
+        robot.goToAbsolutePosition(1, ROBOT_WIDTH/2, QUARRY_LENGTH/2);
         robot.turn(1, 0);
 
         if(runtime.seconds()> QUIT_TIME){
@@ -112,12 +112,12 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
             telemetry.update();
             if(isStopRequested())break;
             if(runtime.seconds()> QUIT_TIME){
-                robot.setOdometryPosition(ROBOT_WIDTH, QUARRY_LENGTH/2 - (skystoneDelta-robot.getSkystonePosition().get(X)*metersPerMm));
+                robot.setOdometryPosition(ROBOT_WIDTH/2, QUARRY_LENGTH/2 - (skystoneDelta-robot.getSkystonePosition().get(X)*metersPerMm));
                 robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
                 return;
             }
         }
-        robot.setOdometryPosition(ROBOT_WIDTH, QUARRY_LENGTH/2 - skystoneDelta);
+        robot.setOdometryPosition(ROBOT_WIDTH/2, QUARRY_LENGTH/2 - skystoneDelta);
 
         robot.setArm(1, ARM_MID);
         robot.clamp.setPosition(CLAMP_OPEN);

@@ -42,7 +42,7 @@ public class M5_Red_Build_Auto extends LinearOpMode {
     final double QUIT_Y = FIELD_WIDTH/2;
     @Override
     public void runOpMode(){
-        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH, FIELD_WIDTH - (WALL_TO_FOUNDATION + FOUNDATION_LENGTH/2), Math.PI);
+        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, FIELD_WIDTH - (WALL_TO_FOUNDATION + FOUNDATION_LENGTH/2), Math.PI);
 
         runtime.reset();
         waitForStart();

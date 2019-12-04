@@ -43,7 +43,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH, QUARRY_LENGTH / 2, Math.PI);
+        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH / 2, Math.PI);
 
         runtime.reset();
         waitForStart();
@@ -60,7 +60,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
             robot.updateVuforia();
             telemetry.update();
         }
-        robot.setOdometryPosition(FIELD_WIDTH-ROBOT_WIDTH, QUARRY_LENGTH/2 + skystoneDelta);
+        robot.setOdometryPosition(FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH/2 + skystoneDelta);
 
         robot.setArm(1, ARM_MID);
         robot.clamp.setPosition(CLAMP_OPEN);
@@ -92,7 +92,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
             return;
         }
 
-        robot.goToAbsolutePosition(1, FIELD_WIDTH-ROBOT_WIDTH, QUARRY_LENGTH/2);
+        robot.goToAbsolutePosition(1, FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH/2);
         robot.turn(1, Math.PI);
 
         if(runtime.seconds()> QUIT_TIME){
@@ -117,7 +117,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
                 return;
             }
         }
-        robot.setOdometryPosition(FIELD_WIDTH-ROBOT_WIDTH, QUARRY_LENGTH/2 + skystoneDelta);
+        robot.setOdometryPosition(FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH/2 + skystoneDelta);
 
         if(runtime.seconds()> QUIT_TIME){
             robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
