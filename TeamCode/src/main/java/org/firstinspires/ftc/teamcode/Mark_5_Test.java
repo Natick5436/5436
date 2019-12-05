@@ -62,7 +62,7 @@ public class Mark_5_Test extends LinearOpMode {
             }else{
                 robot.arm.setPower(0.0);
                 robot.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            }
+            }   
             telemetry.addData("arm pos", robot.encoderCount);
 
             //Manuel flip controls (will not affect automatic if not touching buttons at the same time)
@@ -79,6 +79,14 @@ public class Mark_5_Test extends LinearOpMode {
             }
             if (gamepad2.left_bumper){
                 robot.clamp.setPosition(CLAMP_OPEN);
+            }
+
+            if(gamepad2.dpad_left){
+                robot.extensionR.setPosition(0.5);
+                robot.extensionL.setPosition(0.5);
+            }else if(gamepad2.dpad_right){
+                robot.extensionR.setPosition(0.25);
+                robot.extensionL.setPosition(0.25);
             }
 
             //Lift controls

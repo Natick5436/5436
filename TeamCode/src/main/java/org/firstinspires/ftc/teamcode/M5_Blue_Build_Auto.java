@@ -47,28 +47,28 @@ public class M5_Blue_Build_Auto extends LinearOpMode {
         runtime.reset();
         waitForStart();
 
-        robot.forward(1, START_TO_FOUNDATION-ROBOT_WIDTH);
+        robot.forward(0.25, START_TO_FOUNDATION-ROBOT_WIDTH);
         robot.setGrab(1);
         sleep(1000);
         if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
-            robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
+            robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
             return;
         }
-        robot.forward(1, -((FOUNDATION_LENGTH/2)-0.05));
+        robot.forward(0.25, -((FOUNDATION_LENGTH/2)-0.05));
         if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
-            robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
+            robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
             return;
         }
-        robot.turn(1, Math.PI/2);
+        robot.turn(0.25, Math.PI/2);
         if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
-            robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
+            robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
             return;
         }
-        robot.forward(1, FOUNDATION_WIDTH);
+        robot.forward(0.25, FOUNDATION_WIDTH);
         robot.setGrab(0);
-        robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
+        robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
     }
 }

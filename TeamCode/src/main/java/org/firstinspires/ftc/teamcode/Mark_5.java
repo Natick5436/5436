@@ -186,7 +186,7 @@ public class Mark_5 {
 
         grabL.setPosition(0);
         grabR.setPosition(0);
-        extensionL.setPosition(0.3);
+        extensionL.setPosition(0.5);
         extensionR.setPosition(0.5);
         stoneL.setPosition(0.5);
         stoneR.setPosition(0.5);
