@@ -184,12 +184,13 @@ public class Mark_5 {
         extensionR.setDirection(Servo.Direction.REVERSE);
         stoneR.setDirection(Servo.Direction.REVERSE);
 
-        grabL.setPosition(0);
-        grabR.setPosition(0);
-        extensionL.setPosition(0.5);
-        extensionR.setPosition(0.5);
+        grabL.setPosition(1);
+        grabR.setPosition(1);
+        extensionL.setPosition(1);
+        extensionR.setPosition(1);
         stoneL.setPosition(0.5);
         stoneR.setPosition(0.5);
+        clamp.setPosition(0.45);
 
         lF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

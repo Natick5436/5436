@@ -21,8 +21,8 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
     final double START_TO_FOUNDATION = 1.20015;
     final double SKYBRIDGE_LENGTH = 1.168;
 
-    final int ARM_OUT = -2520;
-    final int ARM_MID = -1260;
+    final int ARM_OUT = 2111;
+    final int ARM_MID = 954;
     final int ARM_IN = 0;
 
     final double CLAMP_CLOSE = 0.9;
@@ -41,6 +41,9 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
     final double QUIT_X = (3*SKYBRIDGE_LENGTH/4);
     final double QUIT_Y = FIELD_WIDTH/2;
 
+    final double SKYSTONE_ACCURACY = 0.5;
+    final double MIDDLE_OF_SCREEN = -11;
+
     @Override
     public void runOpMode() throws InterruptedException {
         robot.initialize(hardwareMap, ROBOT_WIDTH/2, QUARRY_LENGTH/2, 0);
@@ -55,10 +58,11 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
         else
             skystoneDelta = 0;
 
-        while(robot.isSkystone() && Math.abs(robot.getSkystonePosition().get(X)*metersPerMm) > robot.distanceAccuracy){
-            robot.strafe(Math.abs(robot.getSkystonePosition().get(X)*metersPerMm)/(robot.getSkystonePosition().get(X)*metersPerMm));
+        while(robot.isSkystone() && Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm) > SKYSTONE_ACCURACY){
+            robot.strafe(Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm)/(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm));
             robot.updateVuforia();
             telemetry.update();
+            if(isStopRequested())return;
         }
         robot.setOdometryPosition(ROBOT_WIDTH/2, QUARRY_LENGTH/2 - skystoneDelta);
 
@@ -106,11 +110,11 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
         else
             skystoneDelta = 0;
 
-        while(robot.isSkystone() && Math.abs(robot.getSkystonePosition().get(X)*metersPerMm) > robot.distanceAccuracy){
-            robot.strafe(Math.abs(robot.getSkystonePosition().get(X)*metersPerMm)/(robot.getSkystonePosition().get(X)*metersPerMm));
+        while(robot.isSkystone() && Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm) > SKYSTONE_ACCURACY){
+            robot.strafe(Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm)/(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm));
             robot.updateVuforia();
             telemetry.update();
-            if(isStopRequested())break;
+            if(isStopRequested())return;
             if(runtime.seconds()> QUIT_TIME){
                 robot.setOdometryPosition(ROBOT_WIDTH/2, QUARRY_LENGTH/2 - (skystoneDelta-robot.getSkystonePosition().get(X)*metersPerMm));
                 robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);

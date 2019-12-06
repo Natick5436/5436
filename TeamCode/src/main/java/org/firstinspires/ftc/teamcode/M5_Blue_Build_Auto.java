@@ -21,8 +21,8 @@ public class M5_Blue_Build_Auto extends LinearOpMode {
     final double START_TO_FOUNDATION = 1.20015;
     final double SKYBRIDGE_LENGTH = 1.168;
 
-    final int ARM_OUT = -2520;
-    final int ARM_MID = -1260;
+    final int ARM_OUT = 2111;
+    final int ARM_MID = 954;
     final int ARM_IN = 0;
 
     final double CLAMP_CLOSE = 0.9;

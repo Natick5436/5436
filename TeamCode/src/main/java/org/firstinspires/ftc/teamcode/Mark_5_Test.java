@@ -9,12 +9,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "Mark 5 Test", group = "TeleOp")
 public class Mark_5_Test extends LinearOpMode {
     Mark_5 robot = new Mark_5(this);
-    final int ARM_OUT = -2520;
-    final int ARM_MID = -1260;
+    final int ARM_OUT = 2111;
+    final int ARM_MID = 954;
     final int ARM_IN = 0;
 
-    final double CLAMP_CLOSE = 0.9;
-    final double CLAMP_OPEN = 0.45;
+    final double CLAMP_OPEN = 0.9;
+    final double CLAMP_CLOSE = 0.45;
 
     final double FLIP_COLLECT = 0.33;
     final double FLIP_STORE = 1;
@@ -32,15 +32,15 @@ public class Mark_5_Test extends LinearOpMode {
         while (opModeIsActive()) {
             //Arm controls
             if(gamepad2.a){
-                if(Math.abs(robot.arm.getCurrentPosition()-ARM_IN)>robot.armAccuracy){
+                if(Math.abs(robot.arm.getCurrentPosition()-ARM_IN)>=robot.armAccuracy){
                     robot.arm.setPower(0.6*Math.abs(robot.arm.getCurrentPosition())/robot.arm.getCurrentPosition());
                 }else{
                     robot.arm.setPower(0);
                 }
                 if(robot.arm.getCurrentPosition() < ARM_MID){
-                    robot.flip.setPosition(FLIP_COLLECT);
-                }else if(robot.arm.getCurrentPosition() > ARM_MID){
                     robot.flip.setPosition(FLIP_STORE);
+                }else if(robot.arm.getCurrentPosition() > ARM_MID){
+                    robot.flip.setPosition(FLIP_COLLECT);
                 }
             }else if(gamepad2.y){
                 if(Math.abs(robot.arm.getCurrentPosition()-ARM_OUT)>robot.armAccuracy){
@@ -49,9 +49,9 @@ public class Mark_5_Test extends LinearOpMode {
                     robot.arm.setPower(0);
                 }
                 if(robot.arm.getCurrentPosition() < ARM_MID){
-                    robot.flip.setPosition(FLIP_COLLECT);
-                }else if(robot.arm.getCurrentPosition() > ARM_MID){
                     robot.flip.setPosition(FLIP_STORE);
+                }else if(robot.arm.getCurrentPosition() > ARM_MID){
+                    robot.flip.setPosition(FLIP_COLLECT);
                 }
             }else if (gamepad2.dpad_up){
                 robot.arm.setPower(0.6);
@@ -62,7 +62,7 @@ public class Mark_5_Test extends LinearOpMode {
             }else{
                 robot.arm.setPower(0.0);
                 robot.arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            }   
+            }
             telemetry.addData("arm pos", robot.encoderCount);
 
             //Manuel flip controls (will not affect automatic if not touching buttons at the same time)
@@ -82,11 +82,19 @@ public class Mark_5_Test extends LinearOpMode {
             }
 
             if(gamepad2.dpad_left){
-                robot.extensionR.setPosition(0.5);
-                robot.extensionL.setPosition(0.5);
+                robot.extensionR.setPosition(1);
+                robot.extensionL.setPosition(1);
             }else if(gamepad2.dpad_right){
-                robot.extensionR.setPosition(0.25);
-                robot.extensionL.setPosition(0.25);
+                robot.extensionR.setPosition(0.4);
+                robot.extensionL.setPosition(0.4);
+            }
+
+            if(gamepad2.left_stick_button){
+                robot.stoneL.setPosition(1);
+                robot.stoneR.setPosition(1);
+            }else if(gamepad2.right_stick_button){
+                robot.stoneL.setPosition(0.6);
+                robot.stoneR.setPosition(0.6);
             }
 
             //Lift controls
