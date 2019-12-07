@@ -521,7 +521,9 @@ public class Mark_5 {
             sw = false;
         int decreaseRate = 0;
         while (targetAngleAbs >= angleAccuracy){
+            //If change is negative, robot turns in negative direction
             if (targetAngleDelta < 0){
+                //Turn right
                 rF.setPower(-power / decreaseRate);
                 rB.setPower(-power / decreaseRate);
                 lF.setPower(power / decreaseRate);
@@ -532,6 +534,7 @@ public class Mark_5 {
                 sw = true;
             }
             if (targetAngleDelta > 0){
+                //Turn left
                 lF.setPower(-power /  decreaseRate);
                 lB.setPower(-power /  decreaseRate);
                 rF.setPower(power / decreaseRate);
@@ -553,7 +556,6 @@ public class Mark_5 {
             ln.telemetry.addData("targetAngleDelta", targetAngleDelta);
             ln.telemetry.addData("odometryAngle", angle);
             ln.telemetry.addData("targetAngle", targetAngle);
-            ln.telemetry.addData("abs",targetAngleAbs);
             ln.telemetry.addData("Compass Angle: ", useCompassAngle);
             ln.telemetry.update();
         }
