@@ -32,10 +32,10 @@ public class Mark_5_Test extends LinearOpMode {
         while (opModeIsActive()) {
             //Arm controls
             if (gamepad2.dpad_up){
-                robot.arm.setPower(0.6);
+                robot.arm.setPower(-0.6);
                 robot.encoderCount = robot.arm.getCurrentPosition();
             }else if (gamepad2.dpad_down){
-                robot.arm.setPower(-0.6);
+                robot.arm.setPower(0.6);
                 robot.encoderCount = robot.arm.getCurrentPosition();
             }else{
                 robot.arm.setPower(0.0);
@@ -77,11 +77,11 @@ public class Mark_5_Test extends LinearOpMode {
 
             //Lift controls
             if(gamepad2.right_stick_y > 0.25) {
-                robot.liftL.setPower(0.5 * (gamepad2.right_stick_y-0.25));
-                robot.liftR.setPower(0.5 * (gamepad2.right_stick_y-0.25));
+                robot.liftL.setPower(0.5 * (-gamepad2.right_stick_y-0.25));
+                robot.liftR.setPower(0.5 * (-gamepad2.right_stick_y-0.25));
             }else if(gamepad2.right_stick_y < -0.25){
-                robot.liftL.setPower(0.5 * (gamepad2.right_stick_y+0.25));
-                robot.liftR.setPower(0.5 * (gamepad2.right_stick_y+0.25));
+                robot.liftL.setPower(0.5 * (-gamepad2.right_stick_y+0.25));
+                robot.liftR.setPower(0.5 * (-gamepad2.right_stick_y+0.25));
             }else{
                 robot.liftL.setPower(0);
                 robot.liftR.setPower(0);

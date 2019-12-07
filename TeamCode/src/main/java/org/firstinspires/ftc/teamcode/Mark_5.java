@@ -187,8 +187,8 @@ public class Mark_5 {
         stoneR.setDirection(Servo.Direction.REVERSE);
 
         if(teleOpInit){
-            grabL.setPosition(1);
-            grabR.setPosition(1);
+            grabL.setPosition(0);
+            grabR.setPosition(0);
             extensionL.setPosition(0.84);
             extensionR.setPosition(0.85);
             stoneL.setPosition(1);
@@ -196,8 +196,8 @@ public class Mark_5 {
             clamp.setPosition(0.45);
             flip.setPosition(1);
         }else {
-            grabL.setPosition(1);
-            grabR.setPosition(1);
+            grabL.setPosition(0);
+            grabR.setPosition(0);
             extensionL.setPosition(0.98);
             extensionR.setPosition(0.97);
             stoneL.setPosition(0.6);

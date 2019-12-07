@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name = "M5 Red Build Site", group = "Autonomous")
@@ -48,25 +49,33 @@ public class M5_Red_Build_Auto extends LinearOpMode {
         runtime.reset();
         waitForStart();
 
-        robot.setGrab(0);
+        robot.rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        robot.rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        robot.lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        robot.lF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-
-        robot.forward(0.25, START_TO_FOUNDATION-ROBOT_WIDTH-0.02);
+        robot.forward(0.15, START_TO_FOUNDATION-ROBOT_WIDTH-0.02);
         robot.setGrab(1);
+        robot.rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        robot.rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        robot.lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        robot.lF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         sleep(1000);
         if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(0.5, QUIT_X, QUIT_Y);
             return;
         }
-        robot.forward(0.25, -((FOUNDATION_LENGTH/2)-0.05));
+        robot.forward(0.25, -((FOUNDATION_LENGTH/2)));
         if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(0.5, QUIT_X, QUIT_Y);
             return;
         }
-        robot.turn(0.25, 3*Math.PI/4);
-        robot.forward(0.3, 0.15);
+        robot.turn(0.25, 7*Math.PI/8);
+        robot.forward(0.3,0.05);
+        robot.forward(0.3, -0.15);
         robot.turn(0.25, Math.PI/2);
         if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
@@ -79,10 +88,12 @@ public class M5_Red_Build_Auto extends LinearOpMode {
         telemetry.addData("OdometryY", robot.odometryY);
         telemetry.update();
         robot.arm.setPower(-0.6);
-        sleep(1000);
+        sleep(800);
+        robot.arm.setPower(0);
         robot.extensionL.setPosition(0.84);
         robot.extensionR.setPosition(0.85);
         //robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
         robot.forward(0.3,-1);
+        robot.strafe(0.3);
     }
 }
