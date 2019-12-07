@@ -24,36 +24,14 @@ public class Mark_5_Test extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap, 0, 0, 0);
+        robot.initialize(hardwareMap, 0, 0, 0,true);
         drivePower = 0.5;
         fastMode = false;
         waitForStart();
 
         while (opModeIsActive()) {
             //Arm controls
-            if(gamepad2.a){
-                if(Math.abs(robot.arm.getCurrentPosition()-ARM_IN)>=robot.armAccuracy){
-                    robot.arm.setPower(0.6*Math.abs(robot.arm.getCurrentPosition())/robot.arm.getCurrentPosition());
-                }else{
-                    robot.arm.setPower(0);
-                }
-                if(robot.arm.getCurrentPosition() < ARM_MID){
-                    robot.flip.setPosition(FLIP_STORE);
-                }else if(robot.arm.getCurrentPosition() > ARM_MID){
-                    robot.flip.setPosition(FLIP_COLLECT);
-                }
-            }else if(gamepad2.y){
-                if(Math.abs(robot.arm.getCurrentPosition()-ARM_OUT)>robot.armAccuracy){
-                    robot.arm.setPower(0.6*Math.abs(robot.arm.getCurrentPosition()-ARM_OUT)/(robot.arm.getCurrentPosition()-ARM_OUT));
-                }else{
-                    robot.arm.setPower(0);
-                }
-                if(robot.arm.getCurrentPosition() < ARM_MID){
-                    robot.flip.setPosition(FLIP_STORE);
-                }else if(robot.arm.getCurrentPosition() > ARM_MID){
-                    robot.flip.setPosition(FLIP_COLLECT);
-                }
-            }else if (gamepad2.dpad_up){
+            if (gamepad2.dpad_up){
                 robot.arm.setPower(0.6);
                 robot.encoderCount = robot.arm.getCurrentPosition();
             }else if (gamepad2.dpad_down){
@@ -67,40 +45,47 @@ public class Mark_5_Test extends LinearOpMode {
 
             //Manuel flip controls (will not affect automatic if not touching buttons at the same time)
             //e.g. NO x and a at the same time
-            if(gamepad2.b && (!gamepad2.a||!gamepad2.y)){
+            if(gamepad2.right_bumper){
                 robot.flip.setPosition(FLIP_STORE);
-            }if(gamepad2.x && (!gamepad2.a||!gamepad2.y)){
+            }if(gamepad2.left_bumper){
                 robot.flip.setPosition(FLIP_COLLECT);
             }
 
             //Clamp is a completely manuel function for now
-            if (gamepad2.right_bumper){
+            if (gamepad2.a){
                 robot.clamp.setPosition(CLAMP_CLOSE);
             }
-            if (gamepad2.left_bumper){
+            if (gamepad2.y){
                 robot.clamp.setPosition(CLAMP_OPEN);
             }
 
             if(gamepad2.dpad_left){
-                robot.extensionR.setPosition(1);
-                robot.extensionL.setPosition(1);
+                robot.extensionR.setPosition(0.97);
+                robot.extensionL.setPosition(0.98);
             }else if(gamepad2.dpad_right){
-                robot.extensionR.setPosition(0.4);
-                robot.extensionL.setPosition(0.4);
+                robot.extensionR.setPosition(0.84);
+                robot.extensionL.setPosition(0.85);
             }
 
-            if(gamepad2.left_stick_button){
+            if(gamepad2.b){
                 robot.stoneL.setPosition(1);
                 robot.stoneR.setPosition(1);
-            }else if(gamepad2.right_stick_button){
+            }else if(gamepad2.x){
                 robot.stoneL.setPosition(0.6);
                 robot.stoneR.setPosition(0.6);
             }
 
             //Lift controls
-            robot.liftL.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
-            robot.liftR.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
-
+            if(gamepad2.right_stick_y > 0.25) {
+                robot.liftL.setPower(0.5 * (gamepad2.right_stick_y-0.25));
+                robot.liftR.setPower(0.5 * (gamepad2.right_stick_y-0.25));
+            }else if(gamepad2.right_stick_y < -0.25){
+                robot.liftL.setPower(0.5 * (gamepad2.right_stick_y+0.25));
+                robot.liftR.setPower(0.5 * (gamepad2.right_stick_y+0.25));
+            }else{
+                robot.liftL.setPower(0);
+                robot.liftR.setPower(0);
+            }
             //Foundation grabber controls
             if(gamepad1.a) {
                 robot.grabL.setPosition(1);
@@ -112,9 +97,9 @@ public class Mark_5_Test extends LinearOpMode {
 
             //Drive System
             if(gamepad1.left_bumper){
-                robot.angleStrafe(drivePower*Math.hypot(gamepad1.right_stick_y, gamepad1.right_stick_x), Math.atan2(gamepad1.right_stick_y, gamepad1.right_stick_x));
+                robot.angleStrafe(drivePower*Math.hypot(-gamepad1.right_stick_y, gamepad1.right_stick_x), Math.atan2(-gamepad1.right_stick_y, gamepad1.right_stick_x));
             }else if(gamepad1.right_bumper){
-                robot.angleStrafe(drivePower*Math.hypot(gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x));
+                robot.angleStrafe(drivePower*Math.hypot(-gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x));
             }else if((gamepad1.right_trigger-gamepad1.left_trigger) != 0){
                 robot.strafe(drivePower*(gamepad1.right_trigger-gamepad1.left_trigger));
             }else if(gamepad1.dpad_up){
@@ -142,11 +127,14 @@ public class Mark_5_Test extends LinearOpMode {
             }
 
             robot.updateVuforia();
+            telemetry.addData("isSkystone", robot.isSkystone());
+            telemetry.addData("Skystone y pos", robot.getSkystonePosition().get(1)*0.001);
             telemetry.addData("Heading", robot.getHeading());
             telemetry.addData("grabL position", robot.grabL.getPosition());
             telemetry.addData("grabR position", robot.grabR.getPosition());
             telemetry.update();
         }
+        robot.targetsSkyStone.deactivate();
     }
 }
 

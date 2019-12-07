@@ -102,6 +102,7 @@ public class Mark_5 {
     private float phoneZRotate    = 0;
 
     List<VuforiaTrackable> allTrackables;
+    VuforiaTrackables targetsSkyStone;
 
     private boolean skystone;
     private VectorF skystonePosition;
@@ -143,8 +144,9 @@ public class Mark_5 {
         ln = linear;
         robotStatus = Status.PREINIT;
         skystone = false;
+        skystonePosition= new VectorF(100,100,100);
     }
-    public void initialize(HardwareMap hardwareMap, double startX, double startY, double startAngle){
+    public void initialize(HardwareMap hardwareMap, double startX, double startY, double startAngle, boolean teleOpInit){
         this.setStatus(Status.INITIALIZING);
       
         //***Main robot init***
@@ -184,14 +186,25 @@ public class Mark_5 {
         extensionR.setDirection(Servo.Direction.REVERSE);
         stoneR.setDirection(Servo.Direction.REVERSE);
 
-        grabL.setPosition(1);
-        grabR.setPosition(1);
-        extensionL.setPosition(1);
-        extensionR.setPosition(1);
-        stoneL.setPosition(0.5);
-        stoneR.setPosition(0.5);
-        clamp.setPosition(0.45);
-
+        if(teleOpInit){
+            grabL.setPosition(1);
+            grabR.setPosition(1);
+            extensionL.setPosition(0.84);
+            extensionR.setPosition(0.85);
+            stoneL.setPosition(1);
+            stoneR.setPosition(1);
+            clamp.setPosition(0.45);
+            flip.setPosition(1);
+        }else {
+            grabL.setPosition(1);
+            grabR.setPosition(1);
+            extensionL.setPosition(0.98);
+            extensionR.setPosition(0.97);
+            stoneL.setPosition(0.6);
+            stoneR.setPosition(0.6);
+            clamp.setPosition(0.45);
+            flip.setPosition(0.33);
+        }
         lF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -222,7 +235,7 @@ public class Mark_5 {
 
         // Load the data sets for the trackable objects. These particular data
         // sets are stored in the 'assets' part of our application.
-        VuforiaTrackables targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
+        targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
 
         VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
         stoneTarget.setName("Stone Target");
@@ -325,6 +338,7 @@ public class Mark_5 {
         /**  Let all the trackable listeners know where the phone is.  */
         for (VuforiaTrackable trackable : allTrackables) {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
+            if(ln.isStopRequested())return;
         }
         targetsSkyStone.activate();
 
@@ -339,6 +353,9 @@ public class Mark_5 {
 
         while(imu.isGyroCalibrated()){
             if(ln.isStopRequested()){
+                return;
+            }
+            if(ln.isStarted()){
                 return;
             }
         }
@@ -379,7 +396,7 @@ public class Mark_5 {
             VectorF translation = lastLocation.getTranslation();
             skystonePosition = lastLocation.getTranslation();
             ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                    translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                    translation.get(0), translation.get(1), translation.get(2));
 
             // express the rotation of the robot in degrees.
             Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
@@ -426,7 +443,7 @@ public class Mark_5 {
     //Movement methods
     double startAngle;
     final double percentCorrection = 0.15;
-    final double maxCorrectionAngle = Math.PI/6;
+    final double maxCorrectionAngle = Math.PI/12;
     public void forward(double power){
         double correctionIntensity = percentCorrection * power;
         power *= (1-percentCorrection);

@@ -11,7 +11,7 @@ public class Straight_Forward_Auto extends LinearOpMode {
 
     @Override public void runOpMode(){
 
-        robot.initialize(hardwareMap,0,0,0);
+        robot.initialize(hardwareMap,0,0,0, false);
         waitForStart();
         robot.forward(.25,.67);
 

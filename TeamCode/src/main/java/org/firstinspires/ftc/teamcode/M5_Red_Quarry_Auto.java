@@ -42,22 +42,41 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
     final double QUIT_Y = FIELD_WIDTH/2;
 
     final double SKYSTONE_ACCURACY = 0.5;
-    final double MIDDLE_OF_SCREEN = -11;
+    final double MIDDLE_OF_SCREEN = -0.280;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH / 2, Math.PI);
+        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH / 2, Math.PI, false);
 
         runtime.reset();
         waitForStart();
 
+        robot.forward(0.25, 0.25);
         robot.updateVuforia();
         double skystoneDelta;
+        double startTime = runtime.seconds();
+        while(!robot.isSkystone()){
+            double deltaTime = runtime.seconds()-startTime;
+            if(((int)deltaTime/3)%2 == 0) {
+                robot.strafe(-0.25);
+            }else{
+                robot.strafe(0.25);
+            }
+            if(isStopRequested()){
+                return;
+            }
+            robot.updateVuforia();
+            telemetry.addData("Searching:","first loop");
+            telemetry.update();
+        }
         if (robot.isSkystone())
-            skystoneDelta = robot.getSkystonePosition().get(X)*metersPerMm-MIDDLE_OF_SCREEN;
+            skystoneDelta = MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm;
         else
             skystoneDelta = 0;
-
+        telemetry.addData("Skystone deltay position", skystoneDelta);
+        telemetry.addData("skystone pos", robot.getSkystonePosition().get(Y)*metersPerMm);
+        telemetry.update();
+        sleep(5000);
         while(robot.isSkystone() && Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm) > SKYSTONE_ACCURACY){
             robot.strafe(Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm)/(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm));
             robot.updateVuforia();
@@ -71,7 +90,6 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
         robot.flip.setPosition(FLIP_COLLECT);
         robot.setArm(1, ARM_OUT);
 
-        robot.forward(1, DISTANCE_TO_STONES-ARM_LENGTH);
         robot.clamp.setPosition(CLAMP_CLOSE);
 
         robot.setArm(1, ARM_MID);
@@ -164,5 +182,6 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
         robot.setArm(1, ARM_IN);
 
         robot.goToAbsolutePosition(1, FIELD_WIDTH-(3*SKYBRIDGE_LENGTH/4), FIELD_WIDTH/2);
+        robot.targetsSkyStone.deactivate();
     }
 }

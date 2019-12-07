@@ -42,10 +42,14 @@ public class M5_Red_Build_Auto extends LinearOpMode {
     final double QUIT_Y = FIELD_WIDTH/2;
     @Override
     public void runOpMode() throws InterruptedException{
-        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, FIELD_WIDTH - (WALL_TO_FOUNDATION + FOUNDATION_LENGTH/2), Math.PI);
+        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, FIELD_WIDTH - (WALL_TO_FOUNDATION + FOUNDATION_LENGTH/2), Math.PI, false);
+
 
         runtime.reset();
         waitForStart();
+
+        robot.setGrab(0);
+
 
         robot.forward(0.25, START_TO_FOUNDATION-ROBOT_WIDTH-0.02);
         robot.setGrab(1);
@@ -61,6 +65,8 @@ public class M5_Red_Build_Auto extends LinearOpMode {
             robot.goToAbsolutePosition(0.5, QUIT_X, QUIT_Y);
             return;
         }
+        robot.turn(0.25, 3*Math.PI/4);
+        robot.forward(0.3, 0.15);
         robot.turn(0.25, Math.PI/2);
         if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
@@ -72,7 +78,11 @@ public class M5_Red_Build_Auto extends LinearOpMode {
         telemetry.addData("OdometryX", robot.odometryX);
         telemetry.addData("OdometryY", robot.odometryY);
         telemetry.update();
-        sleep(5000);
-        robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
+        robot.arm.setPower(-0.6);
+        sleep(1000);
+        robot.extensionL.setPosition(0.84);
+        robot.extensionR.setPosition(0.85);
+        //robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
+        robot.forward(0.3,-1);
     }
 }

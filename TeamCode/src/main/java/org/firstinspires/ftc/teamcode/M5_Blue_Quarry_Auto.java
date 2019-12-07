@@ -46,7 +46,7 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap, ROBOT_WIDTH/2, QUARRY_LENGTH/2, 0);
+        robot.initialize(hardwareMap, ROBOT_WIDTH/2, QUARRY_LENGTH/2, 0, false);
 
         runtime.reset();
         waitForStart();
@@ -159,5 +159,6 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
         robot.setArm(1, ARM_IN);
 
         robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
+        robot.targetsSkyStone.deactivate();
     }
 }
