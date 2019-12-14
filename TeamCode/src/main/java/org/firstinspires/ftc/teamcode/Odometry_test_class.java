@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.teamcode.Hardware.*;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -33,8 +35,6 @@ public class Odometry_test_class extends LinearOpMode{
             gilgamesh.left.setPower(gamepad1.left_stick_y);
             gilgamesh.right.setPower(gamepad1.right_stick_y);
             gilgamesh.updateOdometryData();
-            telemetry.addData("Current Encoder Left", gilgamesh.currentEncoderL);
-            telemetry.addData("Current Encoder Right", gilgamesh.currentEncoderR);
             telemetry.addData("X Position", gilgamesh.odometryX);
             telemetry.addData("Y Position", gilgamesh.odometryY);
             telemetry.addData("Angle", gilgamesh.odometryAngle);

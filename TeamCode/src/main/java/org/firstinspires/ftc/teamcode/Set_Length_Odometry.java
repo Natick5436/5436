@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.teamcode.Hardware.*;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -77,8 +79,6 @@ public class Set_Length_Odometry extends LinearOpMode {
             telemetry.addData("Odometry Y", gilgamesh.odometryY);
             telemetry.addData("Odometry Angle", gilgamesh.odometryAngle);
             telemetry.addData("Gyro Angle", gilgamesh.sensorGyro.getHeading());
-            telemetry.addData("Current Encoder Left", gilgamesh.currentEncoderL);
-            telemetry.addData("Current Encoder Right", gilgamesh.currentEncoderL);
             telemetry.update();
         }
     }
