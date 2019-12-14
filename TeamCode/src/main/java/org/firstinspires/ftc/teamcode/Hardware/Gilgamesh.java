@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Hardware;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -25,13 +25,13 @@ public class Gilgamesh {
 
     private ElapsedTime runtime = new ElapsedTime();
 
-    DcMotor left, right;
-    ModernRoboticsI2cGyro sensorGyro;
-    GyroSensor gyro;
+    public DcMotor left, right;
+    public ModernRoboticsI2cGyro sensorGyro;
+    public GyroSensor gyro;
 
-    double odometryX;
-    double odometryY;
-    double odometryAngle;
+    public double odometryX;
+    public double odometryY;
+    public double odometryAngle;
     double lastEncoderR, lastEncoderL;
     double currentEncoderL, currentEncoderR;
 

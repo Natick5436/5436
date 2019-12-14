@@ -1,4 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Hardware;
+
+import org.firstinspires.ftc.teamcode.Math.ACMath;
 
 import android.app.Activity;
 import android.view.View;
@@ -26,13 +28,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class Mark_4{
-    DcMotor left, right, middle, liftL, liftR;
-    Servo hook, grab;
-    ColorSensor sensorColor;
-    DistanceSensor sensorDistance;
-    CRServo flyR, flyL, extension;
-    BNO055IMU imu;
-    boolean skystone = false;
+    public DcMotor left, right, middle, liftL, liftR;
+    public Servo hook, grab;
+    public ColorSensor sensorColor;
+    public DistanceSensor sensorDistance;
+    public CRServo flyR, flyL, extension;
+    public BNO055IMU imu;
+    public boolean skystone = false;
 
     //wheel Diameter in cm
     final double wheelDiameter = 10.16;
@@ -44,24 +46,24 @@ public class Mark_4{
     //ticks per full revolution of the wheel
     final double ticksPer = motorGearRatio*ticksPerMotorRev;
 
-    double odometryX;
-    double odometryY;
-    double odometryAngle, initialAngle;
+    public double odometryX;
+    public double odometryY;
+    public double odometryAngle, initialAngle;
     double lastEncoderR, lastEncoderL;
     double currentEncoderL, currentEncoderR;
-    DcMotor deadWheel;
-    final double ticksPerOdometryWheel = 1430;
+    public DcMotor deadWheel;
+    public final double ticksPerOdometryWheel = 1430;
     //diameter in cm
     final double odometryWheelDiameter = 7.62;
-    final double odometryWheelCirc = odometryWheelDiameter * Math.PI / 100;
+    public final double odometryWheelCirc = odometryWheelDiameter * Math.PI / 100;
 
-    float hsvValues[] = {0F, 0F, 0F};
-    final float values[] = hsvValues;
-    final double SCALE_FACTOR = 255;
+    public float hsvValues[] = {0F, 0F, 0F};
+    public final float values[] = hsvValues;
+    public final double SCALE_FACTOR = 255;
 
     final double angleAccuracy = 0.005;
     final double distanceAccuracy = 0.01;
-    View relativeLayout;
+    public View relativeLayout;
 
     Orientation angles;
 

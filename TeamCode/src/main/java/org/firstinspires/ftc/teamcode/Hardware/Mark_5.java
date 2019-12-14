@@ -1,4 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Hardware;
+
+import org.firstinspires.ftc.teamcode.Math.ACMath;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -33,7 +35,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class Mark_5 {
-    enum Status {STRAFING, DRIVING, TURNING, ANGLE_STRAFING, INITIALIZING, INITIALIZED, PREINIT}
+    public enum Status {STRAFING, DRIVING, TURNING, ANGLE_STRAFING, INITIALIZING, INITIALIZED, PREINIT}
     private Status robotStatus;
     public void setStatus(Status s){
         robotStatus = s;
@@ -42,8 +44,8 @@ public class Mark_5 {
         return robotStatus;
     }
 
-    DcMotor liftL, liftR, arm, lF, lB, rF, rB;
-    Servo flip, clamp, grabL, grabR, extensionL, extensionR, stoneL, stoneR;
+    public DcMotor liftL, liftR, arm, lF, lB, rF, rB;
+    public Servo flip, clamp, grabL, grabR, extensionL, extensionR, stoneL, stoneR;
 
     public int encoderCount = 0;
 
@@ -102,7 +104,7 @@ public class Mark_5 {
     private float phoneZRotate    = 0;
 
     List<VuforiaTrackable> allTrackables;
-    VuforiaTrackables targetsSkyStone;
+    public VuforiaTrackables targetsSkyStone;
 
     private boolean skystone;
     private VectorF skystonePosition;
@@ -112,9 +114,9 @@ public class Mark_5 {
     Orientation angles;
 
     //in meters or radians respectively unless specified
-    double odometryX;
-    double odometryY;
-    double odometryAngle, initialAngle;
+    public double odometryX;
+    public double odometryY;
+    public double odometryAngle, initialAngle;
     double lastEncoderR, lastEncoderL;
     double currentEncoderL, currentEncoderR;
 
