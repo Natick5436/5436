@@ -187,14 +187,14 @@ public class Mark_5 {
         stoneR.setDirection(Servo.Direction.REVERSE);
 
         if(teleOpInit){
-            grabL.setPosition(0);
-            grabR.setPosition(0);
+            grabL.setPosition(1);
+            grabR.setPosition(1);
             extensionL.setPosition(0.84);
             extensionR.setPosition(0.85);
             stoneL.setPosition(1);
             stoneR.setPosition(1);
             clamp.setPosition(0.45);
-            flip.setPosition(1);
+            flip.setPosition(0.33);
         }else {
             grabL.setPosition(0);
             grabR.setPosition(0);
@@ -368,6 +368,7 @@ public class Mark_5 {
     public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
+        skystone = false;
         for (VuforiaTrackable trackable : allTrackables) {
             if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
                 if (trackable.getName().equals("Stone Target")){
@@ -442,7 +443,7 @@ public class Mark_5 {
 
     //Movement methods
     double startAngle;
-    final double percentCorrection = 0.15;
+    final double percentCorrection = 0;
     final double maxCorrectionAngle = Math.PI/12;
     public void forward(double power){
         double correctionIntensity = percentCorrection * power;
@@ -682,6 +683,14 @@ public class Mark_5 {
         rF.setPower(0);
         rB.setPower(0);
     }
+
+    public void stopDrive(){
+        lF.setPower(0);
+        lB.setPower(0);
+        rF.setPower(0);
+        rB.setPower(0);
+    }
+
     public void angleStrafe(double power, double angle){
         double correctionIntensity = percentCorrection * power;
         power *= (1-percentCorrection);

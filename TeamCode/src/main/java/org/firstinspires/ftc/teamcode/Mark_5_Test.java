@@ -21,12 +21,13 @@ public class Mark_5_Test extends LinearOpMode {
 
     double drivePower;
     boolean fastMode;
-
+    boolean yDown;
     @Override
     public void runOpMode() throws InterruptedException {
         robot.initialize(hardwareMap, 0, 0, 0,true);
         drivePower = 0.5;
         fastMode = false;
+        yDown = false;
         waitForStart();
 
         while (opModeIsActive()) {
@@ -56,7 +57,14 @@ public class Mark_5_Test extends LinearOpMode {
                 robot.clamp.setPosition(CLAMP_CLOSE);
             }
             if (gamepad2.y){
-                robot.clamp.setPosition(CLAMP_OPEN);
+                if(robot.clamp.getPosition() == 0.45 && !yDown){
+                    robot.clamp.setPosition(0.675);
+                }else {
+                    robot.clamp.setPosition(CLAMP_OPEN);
+                }
+                yDown = true;
+            }else{
+                yDown = false;
             }
 
             if(gamepad2.dpad_left){
@@ -82,6 +90,10 @@ public class Mark_5_Test extends LinearOpMode {
             }else if(gamepad2.right_stick_y < -0.25){
                 robot.liftL.setPower(0.5 * (-gamepad2.right_stick_y+0.25));
                 robot.liftR.setPower(0.5 * (-gamepad2.right_stick_y+0.25));
+            }else if (gamepad2.left_stick_y > 0.25) {
+                robot.liftL.setPower(0.5 * (-gamepad2.left_stick_y-0.25));
+            }else if (gamepad2.left_stick_y < -0.25) {
+                robot.liftL.setPower(0.5  * (-gamepad2.left_stick_y+0.25));
             }else{
                 robot.liftL.setPower(0);
                 robot.liftR.setPower(0);
@@ -97,9 +109,9 @@ public class Mark_5_Test extends LinearOpMode {
 
             //Drive System
             if(gamepad1.left_bumper){
-                robot.angleStrafe(drivePower*Math.hypot(-gamepad1.right_stick_y, gamepad1.right_stick_x), Math.atan2(-gamepad1.right_stick_y, gamepad1.right_stick_x));
-            }else if(gamepad1.right_bumper){
                 robot.angleStrafe(drivePower*Math.hypot(-gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x));
+            }else if(gamepad1.right_bumper){
+                robot.angleStrafe(drivePower*Math.hypot(gamepad1.right_stick_y, -gamepad1.right_stick_x), Math.atan2(gamepad1.right_stick_y, -gamepad1.right_stick_x));
             }else if((gamepad1.right_trigger-gamepad1.left_trigger) != 0){
                 robot.strafe(drivePower*(gamepad1.right_trigger-gamepad1.left_trigger));
             }else if(gamepad1.dpad_up){

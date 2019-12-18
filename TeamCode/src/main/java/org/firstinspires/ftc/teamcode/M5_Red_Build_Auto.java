@@ -49,6 +49,14 @@ public class M5_Red_Build_Auto extends LinearOpMode {
         runtime.reset();
         waitForStart();
 
+
+        robot.strafe(0.5);
+        sleep(350);
+        robot.stopDrive();
+        robot.turn(0.3, Math.PI, true);
+        robot.turn(0.2,Math.PI,true);
+        robot.turn(0.1,Math.PI,true);
+
         robot.rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         robot.rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         robot.lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -62,26 +70,26 @@ public class M5_Red_Build_Auto extends LinearOpMode {
         robot.lF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         sleep(1000);
-        if(runtime.seconds()> QUIT_TIME){
+        /*if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(0.5, QUIT_X, QUIT_Y);
             return;
-        }
+        }*/
         robot.forward(0.25, -((FOUNDATION_LENGTH/2)));
-        if(runtime.seconds()> QUIT_TIME){
+        /*if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(0.5, QUIT_X, QUIT_Y);
             return;
-        }
+        }*/
         robot.turn(0.25, 7*Math.PI/8);
         robot.forward(0.3,0.05);
         robot.forward(0.3, -0.15);
         robot.turn(0.25, Math.PI/2);
-        if(runtime.seconds()> QUIT_TIME){
+        /*if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(0.5, QUIT_X, QUIT_Y);
             return;
-        }
+        }*/
         //robot.forward(0.25, FOUNDATION_WIDTH);
         robot.setGrab(0);
         telemetry.addData("OdometryX", robot.odometryX);
@@ -95,5 +103,7 @@ public class M5_Red_Build_Auto extends LinearOpMode {
         //robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
         robot.forward(0.3,-1);
         robot.strafe(0.3);
+        sleep(5000);
+        robot.stopDrive();
     }
 }

@@ -3,12 +3,14 @@ package org.firstinspires.ftc.teamcode;
 import android.graphics.Color;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Autonomous(name = "M4 Red Quarry", group = "Autonomous")
+@Disabled
 public class M4_Red_Quarry_Auto extends LinearOpMode {
     Mark_4 robot = new Mark_4(this,hardwareMap);
     //in meters

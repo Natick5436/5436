@@ -48,6 +48,13 @@ public class M5_Blue_Build_Auto extends LinearOpMode {
         runtime.reset();
         waitForStart();
 
+        robot.strafe(-0.5);
+        sleep(350);
+        robot.stopDrive();
+        robot.turn(0.3,0,false);
+        robot.turn(0.2,0,false);
+        robot.turn(0.1,0,false);
+
         robot.rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         robot.rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         robot.lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -56,26 +63,26 @@ public class M5_Blue_Build_Auto extends LinearOpMode {
         robot.forward(0.15, START_TO_FOUNDATION-ROBOT_WIDTH);
         robot.setGrab(1);
         sleep(1000);
-        if(runtime.seconds()> QUIT_TIME){
+       /* if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
             return;
-        }
+        }*/
         robot.forward(0.25, -((FOUNDATION_LENGTH/2)));
-        if(runtime.seconds()> QUIT_TIME){
+        /*if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
             return;
-        }
+        }*/
         robot.turn(0.25, Math.PI/8);
         robot.forward(0.3,0.05);
         robot.forward(0.3,-0.2);
         robot.turn(0.3,Math.PI/2);
-        if(runtime.seconds()> QUIT_TIME){
+        /*if(runtime.seconds()> QUIT_TIME){
             robot.setGrab(0);
             robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
             return;
-        }
+        }*/
         //robot.forward(0.25, FOUNDATION_WIDTH);
         robot.setGrab(0);
         //robot.goToAbsolutePosition(0.25, QUIT_X, QUIT_Y);
@@ -86,7 +93,7 @@ public class M5_Blue_Build_Auto extends LinearOpMode {
         robot.extensionR.setPosition(0.85);
         robot.forward(0.3,-1);
         robot.strafe(-0.3);
-        sleep(2000);
+        sleep(5000);
         robot.rB.setPower(0);
         robot.rF.setPower(0);
         robot.lB.setPower(0);

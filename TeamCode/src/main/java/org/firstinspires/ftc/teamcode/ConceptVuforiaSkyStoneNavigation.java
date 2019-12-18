@@ -83,6 +83,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 
 
 @TeleOp(name="SKYSTONE Vuforia Nav", group ="TeleOp")
+@Disabled
 public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
 
     // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
@@ -135,6 +136,7 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
     private float phoneXRotate    = 0;
     private float phoneYRotate    = 0;
     private float phoneZRotate    = 0;
+    boolean skystone;
 
     @Override public void runOpMode() {
         /*
@@ -321,8 +323,15 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
+            skystone = false;
             for (VuforiaTrackable trackable : allTrackables) {
                 if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                    telemetry.addData("Visible Target", trackable.getName());
+                    if (trackable.getName().equals("Stone Target")){
+                        skystone = true;
+                    }else{
+                        skystone = false;
+                    }
                     telemetry.addData("Visible Target", trackable.getName());
                     targetVisible = true;
 
@@ -350,7 +359,9 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
             else {
                 telemetry.addData("Visible Target", "none");
             }
+            telemetry.addData("isSkystone", skystone);
             telemetry.update();
+
         }
 
         // Disable Tracking when we are done;

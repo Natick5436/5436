@@ -13,6 +13,11 @@ public class Straight_Forward_Auto extends LinearOpMode {
 
         robot.initialize(hardwareMap,0,0,0, false);
         waitForStart();
+        robot.arm.setPower(-0.6);
+        sleep(800);
+        robot.arm.setPower(0);
+        robot.extensionL.setPosition(0.84);
+        robot.extensionR.setPosition(0.85);
         robot.forward(.25,.67);
 
     }
