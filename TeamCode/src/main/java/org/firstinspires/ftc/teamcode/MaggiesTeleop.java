@@ -1,4 +1,7 @@
 package org.firstinspires.ftc.teamcode;
+
+import org.firstinspires.ftc.teamcode.Hardware.*;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;

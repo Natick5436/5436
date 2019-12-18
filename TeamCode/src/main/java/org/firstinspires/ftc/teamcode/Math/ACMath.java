@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Math;
 
 public class ACMath{
     public static double toCompassAngle(double standardAngle){
@@ -20,7 +20,7 @@ public class ACMath{
         return compassAngle;
     }
 
-    static boolean compassAngleShorter(double currentAngle, double targetAngle){
+    public static boolean compassAngleShorter(double currentAngle, double targetAngle){
         double compassDelta = Math.abs(toCompassAngle(targetAngle)-toCompassAngle(currentAngle));
         double standardDelta = Math.abs(toStandardAngle(targetAngle)-toStandardAngle(currentAngle));
         if(compassDelta < standardDelta){
