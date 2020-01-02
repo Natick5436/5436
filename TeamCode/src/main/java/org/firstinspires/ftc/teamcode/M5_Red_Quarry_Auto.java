@@ -49,20 +49,19 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH / 2, Math.PI, false);
 
+        Vuforia t1 = new Vuforia(this, hardwareMap);
+        t1.start();
         runtime.reset();
         waitForStart();
 
         robot.setGrab(1);
         robot.forward(0.25, 0.3);
         robot.stopDrive();
-        double waitTime = runtime.seconds();
-        while(runtime.seconds()-waitTime < 4) {
-            robot.updateVuforia();
-        }
         sleep(2000);
+
         double skystoneDelta;
         double startTime = runtime.seconds();
-        while(!robot.isSkystone()){
+        while(!t1.isSkystone()){
             double deltaTime = runtime.seconds()-startTime;
             if(((int)deltaTime/2)%7 == 0) {
                 robot.strafe(-0.4);
@@ -82,28 +81,26 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
             if(isStopRequested() ){
                 return;
             }
-            robot.updateVuforia();
             telemetry.addData("Searching:","first loop");
-            telemetry.addData("robot.isSkystone()", robot.isSkystone());
+            telemetry.addData("robot.isSkystone()", t1.isSkystone());
             telemetry.update();
         }
-        if (robot.isSkystone())
-            skystoneDelta = MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm;
+        if (t1.isSkystone())
+            skystoneDelta = MIDDLE_OF_SCREEN-t1.getSkystonePosition().get(Y)*metersPerMm;
         else
             skystoneDelta = 0;
         telemetry.addData("Skystone delta position", skystoneDelta);
-        telemetry.addData("skystone pos", robot.getSkystonePosition().get(Y)*metersPerMm);
+        telemetry.addData("skystone pos", t1.getSkystonePosition().get(Y)*metersPerMm);
         telemetry.update();
         sleep(5000);
-        while(robot.isSkystone() && Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm) > SKYSTONE_ACCURACY){
-            robot.strafe(-Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm)/(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm));
-            robot.updateVuforia();
+        while(t1.isSkystone() && Math.abs(MIDDLE_OF_SCREEN-t1.getSkystonePosition().get(Y)*metersPerMm) > SKYSTONE_ACCURACY){
+            robot.strafe(-Math.abs(MIDDLE_OF_SCREEN-t1.getSkystonePosition().get(Y)*metersPerMm)/(MIDDLE_OF_SCREEN-t1.getSkystonePosition().get(Y)*metersPerMm));
             telemetry.update();
             if(isStopRequested())return;
         }
         robot.setOdometryPosition(FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH/2 + skystoneDelta);
 
-        robot.setArm(1, ARM_MID);
+        /*robot.setArm(1, ARM_MID);
         robot.clamp.setPosition(CLAMP_OPEN);
         robot.flip.setPosition(FLIP_COLLECT);
         robot.setArm(1, ARM_OUT);
@@ -199,7 +196,6 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
         robot.clamp.setPosition(CLAMP_CLOSE);
         robot.setArm(1, ARM_IN);
 
-        robot.goToAbsolutePosition(1, FIELD_WIDTH-(3*SKYBRIDGE_LENGTH/4), FIELD_WIDTH/2);
-        robot.targetsSkyStone.deactivate();
+        robot.goToAbsolutePosition(1, FIELD_WIDTH-(3*SKYBRIDGE_LENGTH/4), FIELD_WIDTH/2);*/
     }
 }

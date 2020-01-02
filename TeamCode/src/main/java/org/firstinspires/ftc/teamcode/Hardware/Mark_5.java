@@ -226,7 +226,7 @@ public class Mark_5 {
         deadWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         //***Vuforia init***
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        /*int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
@@ -266,7 +266,7 @@ public class Mark_5 {
         VuforiaTrackable rear2 = targetsSkyStone.get(12);
         rear2.setName("Rear Perimeter 2");
 
-        // For convenience, gather together all the trackable objects in one easily-iterable collection */
+
         allTrackables = new ArrayList<VuforiaTrackable>();
         allTrackables.addAll(targetsSkyStone);
         stoneTarget.setLocation(OpenGLMatrix
@@ -337,12 +337,12 @@ public class Mark_5 {
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
 
-        /**  Let all the trackable listeners know where the phone is.  */
+        /**  Let all the trackable listeners know where the phone is.
         for (VuforiaTrackable trackable : allTrackables) {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
             if(ln.isStopRequested())return;
         }
-        targetsSkyStone.activate();
+        targetsSkyStone.activate();*/
 
         //***IMU init***
         BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
@@ -367,7 +367,7 @@ public class Mark_5 {
     }
 
     //Vuforia methods
-    public void updateVuforia(){
+   public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
         skystone = false;
@@ -422,7 +422,6 @@ public class Mark_5 {
         updateVuforia();
         return skystoneOrientation;
     }
-
     //Odometry methods
     public void updateLinearOdometryData(){
         odometryAngle = getHeading();
