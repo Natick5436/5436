@@ -30,6 +30,9 @@ public class Mark_5_Test extends LinearOpMode {
         drivePower = 0.5;
         fastMode = false;
         yDown = false;
+        //Vuforia t1 = new Vuforia(this, hardwareMap);
+        //t1.start();
+
         waitForStart();
 
         while (opModeIsActive()) {
@@ -139,16 +142,11 @@ public class Mark_5_Test extends LinearOpMode {
                 drivePower = 0.5;
                 telemetry.addData("You are in Slow mode", "(click both stick buttons to engage fast mode)");
             }
-
-            robot.updateVuforia();
-            telemetry.addData("isSkystone", robot.isSkystone());
-            telemetry.addData("Skystone y pos", robot.getSkystonePosition().get(1)*0.001);
             telemetry.addData("Heading", robot.getHeading());
             telemetry.addData("grabL position", robot.grabL.getPosition());
             telemetry.addData("grabR position", robot.grabR.getPosition());
             telemetry.update();
         }
-        robot.targetsSkyStone.deactivate();
     }
 }
 

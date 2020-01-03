@@ -47,7 +47,6 @@ public class M5_Red_Build_Auto extends LinearOpMode {
     public void runOpMode() throws InterruptedException{
         robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, FIELD_WIDTH - (WALL_TO_FOUNDATION + FOUNDATION_LENGTH/2), Math.PI, false);
 
-
         runtime.reset();
         waitForStart();
 
