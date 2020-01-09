@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Hardware.*;
 
-@Autonomous(name = "M5 Red Quarry", group = "Autonomous")
-public class M5_Red_Quarry_Auto extends LinearOpMode {
+@Autonomous(name = "M5 Red Block", group = "Autonomous")
+public class M5_Quarry_Block_Auto extends LinearOpMode {
 
     Mark_5 robot = new Mark_5(this);
     ElapsedTime runtime = new ElapsedTime();
@@ -26,8 +26,8 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
     final int ARM_MID = 954;
     final int ARM_IN = 0;
 
-    final double CLAMP_CLOSE = 0.45;
-    final double CLAMP_OPEN = 0.9;
+    final double CLAMP_CLOSE = 0.9;
+    final double CLAMP_OPEN = 0.45;
 
     final double FLIP_COLLECT = 0.33;
     final double FLIP_STORE = 1;
@@ -51,11 +51,6 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
 
         Vuforia t1 = new Vuforia(this, hardwareMap);
         t1.start();
-        while(!t1.isReady()){
-            if(isStopRequested()){
-                return;
-            }
-        }
         runtime.reset();
         waitForStart();
 
@@ -63,68 +58,11 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
         robot.forward(0.25, 0.3);
         robot.stopDrive();
         sleep(2000);
-        int stonePosition = 2;
-        if(t1.isSkystone()){
-            stonePosition = 2;
-        }else{
-            robot.turn(0.2, 11*Math.PI/12, true);
-            sleep(2000);
-            if(t1.isSkystone()){
-                stonePosition = 3;
-            }else{
-                robot.turn(0.2, 7*Math.PI/6, true);
-                sleep(2000);
-                if(t1.isSkystone()){
-                    stonePosition = 1;
-                }else{
-                    stonePosition = 1;
-                }
-            }
-        }
-        telemetry.addData("StonePos", stonePosition);
-        telemetry.update();
-        if(stonePosition == 2){
-            robot.turn(0.2, Math.PI, true);
-            robot.clamp.setPosition(CLAMP_OPEN);
-            robot.setArm(0.4, -2350);
-            robot.forward(0.2, 0.35);
-            robot.turn(0.1, 23*Math.PI/24);
-            robot.clamp.setPosition(CLAMP_CLOSE);
-            sleep(1000);
-            robot.setArm(0.3,-2000);
-            robot.forward(0.3, -0.4);
-            robot.stopDrive();
-        }
-        if(stonePosition == 3){
-            robot.turn(0.2,Math.PI,true);
-            robot.clamp.setPosition(CLAMP_OPEN);
-            robot.setArm(0.4,-2350);
-            robot.turn(0.4, 11*Math.PI/12, true);
-            robot.forward(0.2,0.35);
-            //robot.turn();
-            robot.clamp.setPosition(CLAMP_CLOSE);
-            sleep(1000);
-            robot.setArm(0.3,-2000);
-            robot.forward(0.3,-0.4);
-            robot.stopDrive();
-        }
-        if (stonePosition != 2 && stonePosition != 3){
-            //robot.turn(0.3, 25*Math.PI/24);
-            robot.clamp.setPosition(CLAMP_OPEN);
-            robot.setArm(0.4,-2400);
-            robot.forward(0.2,0.38);
-            //robot.turn(0.3, 49*Math.PI/48);
-            robot.clamp.setPosition(CLAMP_CLOSE);
-            sleep(1000);
-            robot.setArm(0.3,-2000);
-            robot.forward(0.3,-0.4);
-            robot.stopDrive();
-        }
 
-
-        /*double skystoneDelta;
+        double skystoneDelta;
         double startTime = runtime.seconds();
         while(!t1.isSkystone()){
+
             double deltaTime = runtime.seconds()-startTime;
             if(((int)deltaTime/2)%7 == 0) {
                 robot.strafe(-0.4);
@@ -161,7 +99,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
             telemetry.update();
             if(isStopRequested())return;
         }
-        robot.setOdometryPosition(FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH/2 + skystoneDelta);*/
+        robot.setOdometryPosition(FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH/2 + skystoneDelta);
 
         /*robot.setArm(1, ARM_MID);
         robot.clamp.setPosition(CLAMP_OPEN);

@@ -83,11 +83,14 @@ public class Vuforia extends Thread {
     private VectorF skystonePosition;
     private Orientation skystoneOrientation;
 
+    private boolean inited;
+
     LinearOpMode ln;
     HardwareMap hardwareMap;
     public Vuforia(LinearOpMode linear, HardwareMap hM){
         ln = linear;
         hardwareMap=hM;
+        inited = false;
     }
 
     public void run(){
@@ -209,9 +212,13 @@ public class Vuforia extends Thread {
             if(ln.isStopRequested())return;
         }
         targetsSkyStone.activate();
+        inited = true;
         while(ln.opModeIsActive()){
             updateVuforia();
         }
+    }
+    public boolean isReady(){
+        return inited;
     }
     //Vuforia methods
     public void updateVuforia(){

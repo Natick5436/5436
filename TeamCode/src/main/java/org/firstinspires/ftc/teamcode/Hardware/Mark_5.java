@@ -731,6 +731,7 @@ public class Mark_5 {
         grabL.setPosition(position);
         grabR.setPosition(position);
     }
+
     public void setArm(double power, double position){
         while(Math.abs(position-arm.getCurrentPosition()) > armAccuracy){
             arm.setPower(power*(Math.abs(position-arm.getCurrentPosition())/(position-arm.getCurrentPosition())));
