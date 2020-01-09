@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.Hardware;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.I2cDevice;
+import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 
 public class DeadWheel{
 
@@ -9,6 +11,9 @@ public class DeadWheel{
     private double ticksPerRev;
     private double wheelCircum;
     private DcMotor device;
+    DeviceConfiguration.I2cChannel a;
+    I2cDevice b;
+
 
     public DeadWheel(HardwareMap hardwareMap, String configName, double ticksPerRev, double wheelCircum){
         this.configName = configName;
