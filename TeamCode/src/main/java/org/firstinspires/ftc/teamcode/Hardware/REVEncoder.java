@@ -73,7 +73,7 @@ public class REVEncoder extends Thread{
                     count--;
                 }
                 stateA = channelA.getState();
-            }else if(channelB.getState()!=stateA){
+            }else if(channelB.getState()!=stateB){
                 if(stateA==stateB){
                     count--;
                 }else{
