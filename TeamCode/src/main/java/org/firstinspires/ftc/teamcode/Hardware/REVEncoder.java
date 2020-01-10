@@ -8,6 +8,8 @@ public class REVEncoder extends Thread{
     DigitalChannel channelB;
     boolean stateA;
     boolean stateB;
+    boolean currentA;
+    boolean currentB;
     int count;
 
     LinearOpMode ln;
@@ -66,22 +68,23 @@ public class REVEncoder extends Thread{
                     stateB = channelB.getState();
                 }
             }*/
-
+            currentA = channelA.getState();
+            currentB = channelB.getState();
             //Simpler attempt at encoder math with less execution lines.
-            if(channelA.getState()!=stateA){
-                if(stateA!=stateB){
+            if(currentA!=stateA){
+                if(currentA!=currentB){
                     count++;
                 }else{
                     count--;
                 }
-                stateA = channelA.getState();
-            }else if(channelB.getState()!=stateB){
-                if(stateA!=stateB){
+                stateA = currentA;
+            }else if(currentB!=stateB){
+                if(currentA!=currentB){
                     count--;
                 }else{
                     count++;
                 }
-                stateB = channelB.getState();
+                stateB = currentB;
             }
         }
     }
