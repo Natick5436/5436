@@ -11,8 +11,7 @@ public class DeadWheel{
     private double ticksPerRev;
     private double wheelCircum;
     private DcMotor device;
-    DeviceConfiguration.I2cChannel a;
-    I2cDevice b;
+
 
 
     public DeadWheel(HardwareMap hardwareMap, String configName, double ticksPerRev, double wheelCircum){
