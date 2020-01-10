@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.Hardware;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.I2cAddr;
-import com.qualcomm.robotcore.hardware.I2cDevice;
 
 public class REVEncoder extends Thread{
     DigitalChannel channelA;
@@ -22,6 +20,10 @@ public class REVEncoder extends Thread{
         stateA = channelA.getState();
         stateB = channelB.getState();
         count = 0;
+    }
+
+    public int getPosition(){
+        return count;
     }
 
     public void run(){
@@ -67,14 +69,14 @@ public class REVEncoder extends Thread{
 
             //Simpler attempt at encoder math with less execution lines.
             if(channelA.getState()!=stateA){
-                if(stateA==stateB){
+                if(stateA!=stateB){
                     count++;
                 }else{
                     count--;
                 }
                 stateA = channelA.getState();
             }else if(channelB.getState()!=stateB){
-                if(stateA==stateB){
+                if(stateA!=stateB){
                     count--;
                 }else{
                     count++;
