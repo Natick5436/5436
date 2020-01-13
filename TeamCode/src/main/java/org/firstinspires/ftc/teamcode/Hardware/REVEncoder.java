@@ -29,7 +29,7 @@ public class REVEncoder extends Thread{
     }
 
     public void run(){
-        while(ln.opModeIsActive()){
+        while(ln.opModeIsActive() || !ln.isStarted()){
             //First attempt at encoder math
             /*if(stateA&&stateB){
                 if(channelA.getState() != stateA){
