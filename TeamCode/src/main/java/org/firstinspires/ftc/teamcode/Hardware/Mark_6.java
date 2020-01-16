@@ -26,6 +26,7 @@ public class Mark_6 {
     }
 
     public DcMotor lF, lB, rF, rB;
+    public REVEncoder rDW;
 
     BNO055IMU imu;
     Orientation angles;
@@ -73,6 +74,8 @@ public class Mark_6 {
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        //rDW = new REVEncoder("cA", "cB", ln);
 
         //***Odometry init***
         odometryX = startX;
