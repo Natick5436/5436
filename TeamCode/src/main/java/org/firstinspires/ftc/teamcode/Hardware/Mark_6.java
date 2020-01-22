@@ -75,7 +75,7 @@ public class Mark_6 {
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        //rDW = new REVEncoder("cA", "cB", ln);
+        rDW = new REVEncoder("cA", "cB", ln);
 
         //***Odometry init***
         odometryX = startX;

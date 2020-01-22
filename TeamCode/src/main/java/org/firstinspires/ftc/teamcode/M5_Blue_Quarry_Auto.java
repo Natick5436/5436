@@ -27,8 +27,8 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
     final int ARM_MID = 954;
     final int ARM_IN = 0;
 
-    final double CLAMP_CLOSE = 0.9;
-    final double CLAMP_OPEN = 0.45;
+    final double CLAMP_CLOSE = 0.45;
+    final double CLAMP_OPEN = 0.9;
 
     final double FLIP_COLLECT = 0.33;
     final double FLIP_STORE = 1;
@@ -48,119 +48,83 @@ public class M5_Blue_Quarry_Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot.initialize(hardwareMap, ROBOT_WIDTH/2, QUARRY_LENGTH/2, 0, false);
+        robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH / 2, 0, false);
 
-        runtime.reset();
-        waitForStart();
-
-        robot.updateVuforia();
-        double skystoneDelta;
-        if (robot.isSkystone())
-            skystoneDelta = robot.getSkystonePosition().get(X)*metersPerMm;
-        else
-            skystoneDelta = 0;
-
-        while(robot.isSkystone() && Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm) > SKYSTONE_ACCURACY){
-            robot.strafe(Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm)/(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm));
-            robot.updateVuforia();
-            telemetry.update();
-            if(isStopRequested())return;
-        }
-        robot.setOdometryPosition(ROBOT_WIDTH/2, QUARRY_LENGTH/2 - skystoneDelta);
-
-        robot.setArm(1, ARM_MID);
-        robot.clamp.setPosition(CLAMP_OPEN);
-        robot.flip.setPosition(FLIP_COLLECT);
-        robot.setArm(1, ARM_OUT);
-
-        robot.forward(1, DISTANCE_TO_STONES-ARM_LENGTH-ROBOT_WIDTH);
-        robot.clamp.setPosition(CLAMP_CLOSE);
-
-        robot.setArm(1, ARM_MID);
-        robot.flip.setPosition(FLIP_STORE);
-        robot.setArm(1, ARM_IN);
-
-        robot.goToAbsolutePosition(1, (3*SKYBRIDGE_LENGTH/4), FIELD_WIDTH-(WALL_TO_FOUNDATION+FOUNDATION_LENGTH/2));
-        robot.turn(1, 0);
-
-        robot.setArm(1, ARM_MID);
-        robot.flip.setPosition(FLIP_COLLECT);
-        robot.setArm(1, ARM_OUT);
-        robot.clamp.setPosition(CLAMP_OPEN);
-
-        robot.setArm(1, ARM_MID);
-        robot.flip.setPosition(FLIP_STORE);
-        robot.clamp.setPosition(CLAMP_CLOSE);
-        robot.setArm(1, ARM_IN);
-
-        if(runtime.seconds()> QUIT_TIME){
-            robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
-            return;
-        }
-
-        robot.goToAbsolutePosition(1, ROBOT_WIDTH/2, QUARRY_LENGTH/2);
-        robot.turn(1, 0);
-
-        if(runtime.seconds()> QUIT_TIME){
-            robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
-            return;
-        }
-
-        robot.updateVuforia();
-        if (robot.isSkystone())
-            skystoneDelta = robot.getSkystonePosition().get(X)*metersPerMm;
-        else
-            skystoneDelta = 0;
-
-        while(robot.isSkystone() && Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm) > SKYSTONE_ACCURACY){
-            robot.strafe(Math.abs(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm)/(MIDDLE_OF_SCREEN-robot.getSkystonePosition().get(Y)*metersPerMm));
-            robot.updateVuforia();
-            telemetry.update();
-            if(isStopRequested())return;
-            if(runtime.seconds()> QUIT_TIME){
-                robot.setOdometryPosition(ROBOT_WIDTH/2, QUARRY_LENGTH/2 - (skystoneDelta-robot.getSkystonePosition().get(X)*metersPerMm));
-                robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
+        Vuforia t1 = new Vuforia(this, hardwareMap);
+        t1.start();
+        while(!t1.isReady()){
+            if(isStopRequested()){
                 return;
             }
         }
-        robot.setOdometryPosition(ROBOT_WIDTH/2, QUARRY_LENGTH/2 - skystoneDelta);
+        runtime.reset();
+        waitForStart();
 
-        robot.setArm(1, ARM_MID);
-        robot.clamp.setPosition(CLAMP_OPEN);
-        robot.flip.setPosition(FLIP_COLLECT);
-        robot.setArm(1, ARM_OUT);
-
-        if(runtime.seconds()> QUIT_TIME){
-            robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
-            return;
+        robot.setGrab(1);
+        robot.forward(0.25, 0.3);
+        robot.stopDrive();
+        sleep(2000);
+        int stonePosition = 2;
+        if(t1.isSkystone()){
+            stonePosition = 2;
+        }else{
+            robot.turn(0.2, -1*Math.PI/12, false);
+            sleep(2000);
+            if(t1.isSkystone()){
+                stonePosition = 3;
+            }else{
+                robot.turn(0.2, 1*Math.PI/6, false);
+                sleep(2000);
+                if(t1.isSkystone()){
+                    stonePosition = 1;
+                }else{
+                    stonePosition = 2;
+                }
+            }
         }
-
-        robot.forward(1, DISTANCE_TO_STONES-ARM_LENGTH);
-        robot.clamp.setPosition(CLAMP_CLOSE);
-
-        robot.setArm(1, ARM_MID);
-        robot.flip.setPosition(FLIP_STORE);
-        robot.setArm(1, ARM_IN);
-
-        if(runtime.seconds()> QUIT_TIME){
-            robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
-            return;
+        telemetry.addData("StonePos", stonePosition);
+        telemetry.update();
+        if(stonePosition == 1){
+            robot.turn(0.3, 1*Math.PI/24);
+            robot.clamp.setPosition(CLAMP_OPEN);
+            robot.setArm(0.4,-2200);
+            robot.forward(0.2,0.38);
+            //robot.turn(0.3, 49*Math.PI/48);
+            robot.clamp.setPosition(CLAMP_CLOSE);
+            sleep(1000);
+            robot.setArm(0.3,-2000);
+            robot.forward(0.3,-0.4);
+            robot.stopDrive();
+        }else if(stonePosition == 2){
+            robot.turn(0.2, 0, false);
+            robot.clamp.setPosition(CLAMP_OPEN);
+            robot.setArm(0.4, -2200);
+            robot.forward(0.2, 0.35);
+            robot.turn(0.1, -1*Math.PI/24);
+            robot.clamp.setPosition(CLAMP_CLOSE);
+            sleep(1000);
+            robot.setArm(0.3,-2000);
+            robot.forward(0.3, -0.4);
+            robot.stopDrive();
+        }else if(stonePosition == 3){
+            robot.clamp.setPosition(CLAMP_OPEN);
+            robot.setArm(0.4,-2200);
+            robot.turn(0.4, -1*Math.PI/12, false);
+            robot.forward(0.2,0.35);
+            robot.clamp.setPosition(CLAMP_CLOSE);
+            sleep(1000);
+            robot.setArm(0.3,-2000);
+            robot.forward(0.3,-0.4);
+            robot.stopDrive();
         }
-
-        robot.goToAbsolutePosition(1, (3*SKYBRIDGE_LENGTH/4), FIELD_WIDTH-(WALL_TO_FOUNDATION+FOUNDATION_LENGTH/2));
-        robot.turn(1, 0);
-
-        robot.setArm(1, ARM_MID);
-        robot.flip.setPosition(FLIP_COLLECT);
-        robot.setArm(1, ARM_OUT);
-        robot.clamp.setPosition(CLAMP_OPEN);
-
-        robot.setArm(1, ARM_MID);
-        robot.flip.setPosition(FLIP_STORE);
-        robot.clamp.setPosition(CLAMP_CLOSE);
-        robot.setArm(1, ARM_IN);
-
-        robot.goToAbsolutePosition(1, QUIT_X, QUIT_Y);
+        robot.turn(0.3, 9*Math.PI/24,false);
+        robot.forward(0.3, 1.2);
+        robot.stopDrive();
+        robot.turn(0.3, Math.PI/2);
+        robot.forward(0.3, -0.2);
+        robot.strafe( 1);
+        sleep(1000);
+        robot.stopDrive();
         robot.targetsSkyStone.deactivate();
     }
 }

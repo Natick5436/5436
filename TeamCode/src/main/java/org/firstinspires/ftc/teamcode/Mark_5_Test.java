@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "Mark 5 Test", group = "TeleOp")
+@TeleOp(name = "Mark 5 TeleOp", group = "TeleOp")
 public class Mark_5_Test extends LinearOpMode {
     Mark_5 robot = new Mark_5(this);
     final int ARM_OUT = 2111;
@@ -90,10 +90,10 @@ public class Mark_5_Test extends LinearOpMode {
 
             //Lift controls
             if(gamepad2.right_stick_y > 0.25) {
-                robot.liftL.setPower(0.5 * (-gamepad2.right_stick_y-0.25));
-                robot.liftR.setPower(0.5 * (-gamepad2.right_stick_y-0.25));
+                robot.liftL.setPower(0.5 * (-gamepad2.right_stick_y-0.25-gamepad2.left_stick_y));
+                robot.liftR.setPower(0.5 * (-gamepad2.right_stick_y-0.25-gamepad2.left_stick_y));
             }else if(gamepad2.right_stick_y < -0.25){
-                robot.liftL.setPower(0.5 * (-gamepad2.right_stick_y+0.25));
+                robot.liftL.setPower(0.5 * (-gamepad2.right_stick_y+0.25-gamepad2.left_stick_y));
                 robot.liftR.setPower(0.5 * (-gamepad2.right_stick_y+0.25));
             }else if (gamepad2.left_stick_y > 0.25) {
                 robot.liftL.setPower(0.5 * (-gamepad2.left_stick_y-0.25));

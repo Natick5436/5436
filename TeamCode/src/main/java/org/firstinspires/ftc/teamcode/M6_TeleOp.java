@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import org.firstinspires.ftc.teamcode.Hardware.Mark_5;
 import org.firstinspires.ftc.teamcode.Hardware.Mark_6;
 
+@Disabled
 @TeleOp(name = "M6 TeleOp", group = "TeleOp")
 public class M6_TeleOp extends LinearOpMode {
     Mark_6 robot = new Mark_6(this);
@@ -16,16 +18,13 @@ public class M6_TeleOp extends LinearOpMode {
     boolean yDown;
     @Override
     public void runOpMode()throws InterruptedException{
-        DigitalChannel cA = hardwareMap.digitalChannel.get("cA");
-        DigitalChannel cB = hardwareMap.digitalChannel.get("cB");
-        cA.setMode(DigitalChannel.Mode.INPUT);
-        cB.setMode(DigitalChannel.Mode.INPUT);
         robot.initialize(hardwareMap, 0, 0, 0,true);
         drivePower = 0.5;
         fastMode = false;
         yDown = false;
 
         waitForStart();
+        robot.rDW.start();
         while (opModeIsActive()) {
             //Drive System
             if(gamepad1.left_bumper){
@@ -57,8 +56,7 @@ public class M6_TeleOp extends LinearOpMode {
                 drivePower = 0.5;
                 telemetry.addData("You are in Slow mode", "(click both stick buttons to engage fast mode)");
             }
-            telemetry.addData("cA", cA.getState());
-            telemetry.addData("cB", cB.getState());
+            telemetry.addData("Position", robot.rF.getCurrentPosition());
             telemetry.update();
         }
     }
