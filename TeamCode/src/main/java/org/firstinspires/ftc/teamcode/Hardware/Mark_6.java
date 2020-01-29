@@ -15,6 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.Math.ACMath;
+import org.firstinspires.ftc.teamcode.ThreadsandInterfaces.Odometry;
 
 public class Mark_6 {
     private Mark_5.Status robotStatus;
@@ -25,18 +26,11 @@ public class Mark_6 {
         return robotStatus;
     }
 
-    public DcMotor lF, lB, rF, rB;
+    public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift;
     public REVEncoder rDW;
 
     BNO055IMU imu;
     Orientation angles;
-
-    //in meters or radians respectively unless specified
-    public double odometryX;
-    public double odometryY;
-    public double odometryAngle, initialAngle;
-    double lastEncoderR, lastEncoderL;
-    double currentEncoderL, currentEncoderR;
 
     //wheel Diameter in cm
     final double wheelDiameter = 10.0;
@@ -47,8 +41,12 @@ public class Mark_6 {
     final double motorGearRatio = 0.5;
     //ticks per full revolution of the wheel
     final double ticksPer = motorGearRatio*ticksPerMotorRev;
+    final double LENGTH = 0.3;
 
-    final double angleAccuracy = 0.005;
+    public Odometry odo;
+    double initialAngle;
+
+    final double angleAccuracy = 0.01;
     final double distanceAccuracy = 0.01;
 
     LinearOpMode ln;
@@ -61,6 +59,7 @@ public class Mark_6 {
         lB = hardwareMap.dcMotor.get("lB");
         rF = hardwareMap.dcMotor.get("rF");
         rB = hardwareMap.dcMotor.get("rB");
+
 
         lF.setDirection(DcMotorSimple.Direction.REVERSE);
         lB.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -75,13 +74,9 @@ public class Mark_6 {
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        rDW = new REVEncoder("cA", "cB", ln);
-
         //***Odometry init***
-        odometryX = startX;
-        odometryY = startY;
-        odometryAngle = ACMath.toStandardAngle(startAngle);
-        initialAngle = ACMath.toStandardAngle(startAngle);
+        odo = new Odometry(ln, new DeadWheel(intakeL), new DeadWheel(intakeR), new DeadWheel(lift), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, startX, startY, startAngle, 1, 1, 1);
+        initialAngle = startAngle;
 
         //***IMU init***
         BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
@@ -100,29 +95,13 @@ public class Mark_6 {
                 return;
             }
         }
-
+        odo.start();
         ln.telemetry.addData("Status", "Ready");
         ln.telemetry.update();
     }
 
-    //Odometry methods
-    public void updateLinearOdometryData(){
-        odometryAngle = getHeading();
-        currentEncoderL = lF.getCurrentPosition();
-        currentEncoderR = rF.getCurrentPosition();
-        double deltaTickL = currentEncoderL - lastEncoderL;
-        double deltaTickR = currentEncoderR - lastEncoderR;
-        double dL = wheelCirc * deltaTickL / ticksPer;
-        double dR = wheelCirc * deltaTickR / ticksPer;
-        double dM = (dL + dR) / 2;
-        odometryX = odometryX + (dM * Math.cos(odometryAngle));
-        odometryY = odometryY + (dM * Math.sin(odometryAngle));
-        lastEncoderL = currentEncoderL;
-        lastEncoderR = currentEncoderR;
-    }
     public void setOdometryPosition(double x, double y){
-        odometryX = x;
-        odometryY = y;
+
     }
 
     //Movement methods
@@ -146,57 +125,10 @@ public class Mark_6 {
         lB.setPower(power+turnOffset);
         rF.setPower(power-turnOffset);
         rB.setPower(power-turnOffset);
-        updateLinearOdometryData();
     }
     //this function only takes inputs from the front wheels of the robot
     public void forward(double power, double meters){
-        double correctionIntensity = percentCorrection * power;
-        power *= (1-percentCorrection);
-        if(getStatus() != Mark_5.Status.DRIVING){
-            startAngle = getHeading();
-        }
-        double targetTickDelta = (meters / wheelCirc)*ticksPer;
-        double targetTickR = targetTickDelta+rF.getCurrentPosition();
-        double targetTickL = targetTickDelta+lF.getCurrentPosition();
-        double deltatickR;
-        double deltatickL;
-        this.setStatus(Mark_5.Status.DRIVING);
-        double turnOffset;
-        //(Math.abs(rF.getCurrentPosition()-targetTickR) + Math.abs(lF.getCurrentPosition()-targetTickL))/2 >= (distanceAccuracy/wheelCirc)*ticksPer
-        while ((Math.abs(rF.getCurrentPosition()-targetTickR) + Math.abs(lF.getCurrentPosition()-targetTickL))/2 >= (distanceAccuracy/wheelCirc)*ticksPer) {
-            if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
-                turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
-            }else{
-                turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
-            }
-            deltatickL = targetTickL - lF.getCurrentPosition();
-            deltatickR = targetTickR - rF.getCurrentPosition();
-            if(rF.getCurrentPosition() != targetTickR) {
-                rF.setPower((power * (Math.abs(deltatickR) / deltatickR))-turnOffset);
-                rB.setPower((power * (Math.abs(deltatickR) / deltatickR))-turnOffset);
-            }else{
-                rF.setPower(0);
-                rB.setPower(0);
-            }
-            if (lF.getCurrentPosition() != targetTickL) {
-                lF.setPower((power * (Math.abs(deltatickL) / deltatickL))+turnOffset);
-                lB.setPower((power * (Math.abs(deltatickL) / deltatickL))+turnOffset);
-            }else{
-                lF.setPower(0);
-                lB.setPower(0);
-            }
-            ln.telemetry.addData("left encoder", lF.getCurrentPosition());
-            ln.telemetry.addData("right encoder", rF.getCurrentPosition());
-            ln.telemetry.addData("targetTickL", targetTickL);
-            ln.telemetry.addData("targetTickR", targetTickR);
-            ln.telemetry.update();
-            if(ln.isStopRequested())return;
-            updateLinearOdometryData();
-        }
-        lF.setPower(0);
-        rF.setPower(0);
-        lB.setPower(0);
-        rB.setPower(0);
+
     }
     public void turn(double power){
         this.setStatus(Mark_5.Status.TURNING);
@@ -206,8 +138,7 @@ public class Mark_6 {
         lB.setPower(-power);
     }
     public void turn(double power, double targetAngle){
-        odometryAngle = getHeading();
-        double angle = odometryAngle;
+        double angle = getHeading();
         double targetAngleDelta;
         boolean useCompassAngle = ACMath.compassAngleShorter(targetAngle, angle);
         if(useCompassAngle) {
@@ -246,8 +177,7 @@ public class Mark_6 {
                 }
                 sw = false;
             }
-            odometryAngle = getHeading();
-            angle = odometryAngle;
+            angle = getHeading();
             if(useCompassAngle) {
                 targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
             }else{
@@ -267,8 +197,7 @@ public class Mark_6 {
         lB.setPower(0);
     }
     public void turn(double power, double targetAngle,boolean override){
-        odometryAngle = getHeading();
-        double angle = odometryAngle;
+        double angle = getHeading();
         double targetAngleDelta;
         if(override) {
             targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
@@ -303,8 +232,7 @@ public class Mark_6 {
                 }
                 sw = false;
             }
-            odometryAngle = getHeading();
-            angle = odometryAngle;
+            angle = getHeading();
             if(override) {
                 targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
             }else{
@@ -398,8 +326,8 @@ public class Mark_6 {
         forward(power, meters);
     }
     public void goToAbsolutePosition(double power, double x, double y)throws InterruptedException{
-        double deltaX = x-odometryX;
-        double deltaY = y-odometryY;
+        double deltaX = x-odo.getX();
+        double deltaY = y-odo.getY();
         double angle = Math.atan2(deltaY, deltaX);
         double distance = Math.hypot(deltaY, deltaX);
         ln.telemetry.addData("targetAngle:", angle);

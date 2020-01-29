@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import org.firstinspires.ftc.teamcode.Hardware.Mark_5;
 import org.firstinspires.ftc.teamcode.Hardware.Mark_6;
 
-@Disabled
 @TeleOp(name = "M6 TeleOp", group = "TeleOp")
 public class M6_TeleOp extends LinearOpMode {
     Mark_6 robot = new Mark_6(this);

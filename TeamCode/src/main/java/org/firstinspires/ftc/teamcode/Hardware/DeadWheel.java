@@ -11,13 +11,18 @@ public class DeadWheel{
     private double ticksPerRev;
     private double wheelCircum;
     private DcMotor device;
+    private int direction;
 
 
 
-    public DeadWheel(HardwareMap hardwareMap, String configName, double ticksPerRev, double wheelCircum){
-        this.configName = configName;
-        this.ticksPerRev = ticksPerRev;
-        this.wheelCircum = wheelCircum;
-        device = hardwareMap.dcMotor.get(configName);
+    public DeadWheel(DcMotor configName){
+        this.direction = 1;
+        device = configName;
+    }
+    public void setDirection(int d) {
+        direction = d;
+    }
+    public int getCurrentPosition(){
+        return direction*device.getCurrentPosition();
     }
 }

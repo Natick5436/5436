@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.Hardware.DeadWheel;
+
 public class Odometry extends Thread{
     //wheelDiameter in centimeters.
     double wheelDiameter;
@@ -24,15 +26,12 @@ public class Odometry extends Thread{
     double lastEncoderR, lastEncoderL, lastEncoderMiddle;
     double currentEncoderL, currentEncoderR, currentEncoderMiddle;
 
-    private DcMotor left;
-    private double lDirection;
-    private DcMotor right;
-    private double rDirection;
-    private DcMotor middle;
-    private double mDirection;
+    private DeadWheel left;
+    private DeadWheel right;
+    private DeadWheel middle;
 
     LinearOpMode ln;
-    public Odometry(LinearOpMode linear, DcMotor l, DcMotor r, DcMotor m, double wheelDiameter, double ticksPerMotorRev, double motorGearRatio, double LENGTH, double initialX, double initialY, double initialAngle){
+    public Odometry(LinearOpMode linear, DeadWheel l, DeadWheel r, DeadWheel m, double wheelDiameter, double ticksPerMotorRev, double motorGearRatio, double LENGTH, double initialX, double initialY, double initialAngle, int lDirection, int rDirection, int mDirection){
         ln = linear;
         left = l;
         right = r;
@@ -46,19 +45,9 @@ public class Odometry extends Thread{
         odometryX = initialX;
         odometryY = initialY;
         odometryAngle = initialAngle;
-        lDirection = 1;
-        rDirection = 1;
-        mDirection = 1;
-    }
-
-    public void setLeftDirection(DcMotor.Direction direction){
-        lDirection = (direction == DcMotorSimple.Direction.REVERSE)? -1 : 1;
-    }
-    public void setRightDirection(DcMotor.Direction direction){
-        rDirection = (direction == DcMotorSimple.Direction.REVERSE)? -1 : 1;
-    }
-    public void setMiddleDirection(DcMotor.Direction direction){
-        mDirection = (direction == DcMotorSimple.Direction.REVERSE)? -1 : 1;
+        l.setDirection(lDirection);
+        m.setDirection(mDirection);
+        r.setDirection(rDirection);
     }
 
     public double getX(){
@@ -75,13 +64,13 @@ public class Odometry extends Thread{
     }
 
     public void run(){
-        lastEncoderL = lDirection*left.getCurrentPosition();
-        lastEncoderR = rDirection*right.getCurrentPosition();
-        lastEncoderMiddle = mDirection*middle.getCurrentPosition();
+        lastEncoderL = left.getCurrentPosition();
+        lastEncoderR = right.getCurrentPosition();
+        lastEncoderMiddle = middle.getCurrentPosition();
         while (ln.opModeIsActive()){
-            currentEncoderL = lDirection*left.getCurrentPosition();
-            currentEncoderR = rDirection*right.getCurrentPosition();
-            currentEncoderMiddle = mDirection*middle.getCurrentPosition();
+            currentEncoderL = left.getCurrentPosition();
+            currentEncoderR = right.getCurrentPosition();
+            currentEncoderMiddle = middle.getCurrentPosition();
             double deltaTickL = currentEncoderL - lastEncoderL;
             double deltaTickR = currentEncoderR - lastEncoderR;
             double deltaTickMiddle = currentEncoderMiddle - lastEncoderMiddle;
