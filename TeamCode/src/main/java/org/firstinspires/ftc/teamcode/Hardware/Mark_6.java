@@ -101,7 +101,37 @@ public class Mark_6 {
     }
 
     public void setOdometryPosition(double x, double y){
+        odo.setX(x);
+        odo.setY(y);
+    }
+    public void resetAngle(double angle){
+        odo.resetAngle(angle);
+    }
 
+    //These functions use PD control to set the velocity of each dead wheel
+    final double KP = 1;
+    final double KD = 1;
+    double lastErrorL;
+    double lastTimeL;
+    public void updatePDVelocityL(double v){
+        double error = v-odo.getVelocityL();
+        double time = System.currentTimeMillis();
+        double power = Range.clip(KP*error+KD*(error-lastErrorL)/(time-lastTimeL), -1, 1);
+        lF.setPower(power);
+        lB.setPower(power);
+        lastErrorL = error;
+        lastTimeL = time;
+    }
+    double lastErrorR;
+    double lastTimeR;
+    public void updatePDVelocityR(double v){
+        double error = v-odo.getVelocityR();
+        double time = System.currentTimeMillis();
+        double power = Range.clip(KP*error+KD*(error-lastErrorR)/(time-lastTimeR), -1, 1);
+        rF.setPower(power);
+        rB.setPower(power);
+        lastErrorR = error;
+        lastTimeR = time;
     }
 
     //Movement methods

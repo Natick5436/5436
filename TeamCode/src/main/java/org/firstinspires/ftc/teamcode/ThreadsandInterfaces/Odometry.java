@@ -25,6 +25,8 @@ public class Odometry extends Thread{
     public double odometryAngle;
     double lastEncoderR, lastEncoderL, lastEncoderMiddle;
     double currentEncoderL, currentEncoderR, currentEncoderMiddle;
+    double velocityL, velocityR, velocityMiddle;
+    double lastTime, currentTime;
 
     private DeadWheel left;
     private DeadWheel right;
@@ -48,6 +50,11 @@ public class Odometry extends Thread{
         l.setDirection(lDirection);
         m.setDirection(mDirection);
         r.setDirection(rDirection);
+        velocityL = 0;
+        velocityR = 0;
+        velocityMiddle = 0;
+        lastTime = 0;
+        currentTime = 0;
     }
 
     public double getX(){
@@ -59,24 +66,39 @@ public class Odometry extends Thread{
     public double getAngle(){
         return odometryAngle;
     }
+    public void setX(double x){
+        odometryX = x;
+    }
+    public void setY(double y){
+        odometryY = y;
+    }
     public void resetAngle(double overrideAngle){
         odometryAngle = overrideAngle;
     }
+    public double getVelocityL(){return velocityL;}
+    public double getVelocityR(){return velocityR;}
+    public double getVelocityMiddle(){return velocityMiddle;}
+
 
     public void run(){
         lastEncoderL = left.getCurrentPosition();
         lastEncoderR = right.getCurrentPosition();
         lastEncoderMiddle = middle.getCurrentPosition();
+        lastTime = System.currentTimeMillis();
         while (ln.opModeIsActive()){
             currentEncoderL = left.getCurrentPosition();
             currentEncoderR = right.getCurrentPosition();
             currentEncoderMiddle = middle.getCurrentPosition();
+            currentTime = System.currentTimeMillis();
             double deltaTickL = currentEncoderL - lastEncoderL;
             double deltaTickR = currentEncoderR - lastEncoderR;
             double deltaTickMiddle = currentEncoderMiddle - lastEncoderMiddle;
             double dL = wheelCircum * deltaTickL / ticksPer;
             double dR = wheelCircum * deltaTickR / ticksPer;
             double dMiddle = wheelCircum * deltaTickMiddle / ticksPer;
+            velocityL = 1000*dL/(currentTime-lastTime);
+            velocityR = 1000*dR/(currentTime-lastTime);
+            velocityMiddle = 1000*dMiddle/(currentTime-lastTime);
             double dM = (dL + dR) / 2;
             double dAngle = (dR - dL) / LENGTH;
 
@@ -93,6 +115,7 @@ public class Odometry extends Thread{
             }
             lastEncoderL = currentEncoderL;
             lastEncoderR = currentEncoderR;
+            lastTime = currentTime;
         }
     }
 }
