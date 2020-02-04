@@ -37,6 +37,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
     final int X = 0;
     final int Y = 1;
     final int Z = 2;
+    int stonePosition;
 
     final double QUIT_TIME = 25;
     final double QUIT_X = FIELD_WIDTH-(3*SKYBRIDGE_LENGTH/4);
@@ -50,9 +51,19 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
         //Vuforia t1 = new Vuforia(this, hardwareMap);
         //t1.start();
         Vuforia t1 = new Vuforia(this, hardwareMap);
+        t1.start();
 
         robot.initialize(hardwareMap, FIELD_WIDTH-ROBOT_WIDTH/2, QUARRY_LENGTH / 2, Math.PI, false);
 
+        while(!isStarted() && !isStopRequested()){
+           if (t1.skystoneInit()) {
+               stonePosition = 2;
+           }else{
+               t1.setZoom("5");
+           }
+            telemetry.addData("stone Position", stonePosition);
+            telemetry.update();
+        }
 
         //while(!t1.isReady()){
             if(isStopRequested()){
@@ -61,13 +72,10 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
         //}
         runtime.reset();
         waitForStart();
-
         robot.setGrab(1);
         robot.forward(0.25, 0.3);
         robot.stopDrive();
-        t1.start();
         sleep(5000);
-        int stonePosition = 2;
         if(t1.isSkystone()){
             stonePosition = 2;
         }else{

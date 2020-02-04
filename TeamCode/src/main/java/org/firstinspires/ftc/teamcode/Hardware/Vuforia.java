@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.Hardware;
 
+import android.graphics.Camera;
+import android.hardware.camera2.CameraDevice;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -30,6 +33,7 @@ public class Vuforia extends Thread {
     //
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
     private static final boolean PHONE_IS_PORTRAIT = false;
+
 
     /*
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
@@ -76,6 +80,7 @@ public class Vuforia extends Thread {
     private float phoneYRotate    = 180;
     private float phoneZRotate    = 0;
 
+
     List<VuforiaTrackable> allTrackables;
     public VuforiaTrackables targetsSkyStone;
 
@@ -87,6 +92,7 @@ public class Vuforia extends Thread {
 
     LinearOpMode ln;
     HardwareMap hardwareMap;
+
     public Vuforia(LinearOpMode linear, HardwareMap hM){
         ln = linear;
         hardwareMap=hM;
@@ -98,11 +104,14 @@ public class Vuforia extends Thread {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
+
+
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection   = CAMERA_CHOICE;
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
 
         // Load the data sets for the trackable objects. These particular data
         // sets are stored in the 'assets' part of our application.
@@ -212,10 +221,27 @@ public class Vuforia extends Thread {
             if(ln.isStopRequested())return;
         }
         targetsSkyStone.activate();
+
+        com.vuforia.CameraDevice.getInstance().setFlashTorchMode(true);
+
+        com.vuforia.CameraDevice.getInstance().setField("opti-zoom", "opti-zoom-on");
+
+        com.vuforia.CameraDevice.getInstance().setField("zoom", "30");
+        skystoneInit();
+
         inited = true;
         while(ln.opModeIsActive()){
             updateVuforia();
         }
+    }
+
+    public void setZoom(String zoom){
+        com.vuforia.CameraDevice.getInstance().setField("zoom", zoom);
+    }
+
+    public boolean skystoneInit(){
+        updateVuforia();
+        return skystone;
     }
     public boolean isReady(){
         return inited;

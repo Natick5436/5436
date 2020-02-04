@@ -23,7 +23,6 @@ public class M6_TeleOp extends LinearOpMode {
         yDown = false;
 
         waitForStart();
-        robot.rDW.start();
         while (opModeIsActive()) {
             //Drive System
             if(gamepad1.left_bumper){
@@ -56,6 +55,8 @@ public class M6_TeleOp extends LinearOpMode {
                 telemetry.addData("You are in Slow mode", "(click both stick buttons to engage fast mode)");
             }
             telemetry.addData("Position", robot.rF.getCurrentPosition());
+            telemetry.addData("NumThreads", Thread.activeCount());
+            telemetry.addData("MaxThreads", Runtime.getRuntime().availableProcessors());
             telemetry.update();
         }
     }
