@@ -75,7 +75,7 @@ public class Mark_6 {
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //***Odometry init***
-        odo = new Odometry(ln, new DeadWheel(intakeL), new DeadWheel(intakeR), new DeadWheel(lift), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, startX, startY, startAngle, 1, 1, 1);
+        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(rB), 5.08, 8192, 1, 0.4572, startX, startY, startAngle, 1, 1, 1);
         initialAngle = startAngle;
 
         //***IMU init***
