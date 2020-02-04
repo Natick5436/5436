@@ -27,7 +27,6 @@ public class Mark_6 {
     }
 
     public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift;
-    public REVEncoder rDW;
 
     BNO055IMU imu;
     Orientation angles;
@@ -64,6 +63,11 @@ public class Mark_6 {
         lF.setDirection(DcMotorSimple.Direction.REVERSE);
         lB.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        lF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rB .setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         lF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -75,7 +79,7 @@ public class Mark_6 {
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //***Odometry init***
-        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(rB), 5.08, 8192, 1, 0.4572, startX, startY, startAngle, 1, 1, 1);
+        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), 5.08, 8192, 1, 0.4572, startX, startY, startAngle, - 1, 1, 1);
         initialAngle = startAngle;
 
         //***IMU init***
@@ -95,7 +99,6 @@ public class Mark_6 {
                 return;
             }
         }
-        odo.start();
         ln.telemetry.addData("Status", "Ready");
         ln.telemetry.update();
     }
@@ -116,7 +119,7 @@ public class Mark_6 {
     public void updatePDVelocityL(double v){
         double error = v-odo.getVelocityL();
         double time = System.currentTimeMillis();
-        double power = Range.clip(KP*error+KD*(error-lastErrorL)/(time-lastTimeL), -1, 1);
+        double power = Range.clip( KP*error+KD*(error-lastErrorL)/(time-lastTimeL), -1, 1);
         lF.setPower(power);
         lB.setPower(power);
         lastErrorL = error;
