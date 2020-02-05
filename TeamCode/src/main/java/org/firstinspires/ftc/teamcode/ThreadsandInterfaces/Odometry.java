@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Hardware.DeadWheel;
+import org.firstinspires.ftc.teamcode.Hardware.Mark_6;
 
 public class Odometry extends Thread{
     //wheelDiameter in centimeters.
@@ -19,6 +20,9 @@ public class Odometry extends Thread{
     double ticksPer;
     //distance in meters between the two encoded wheels
     double LENGTH;
+    //offset numbers
+    double xOffset = 0.05;
+    double yOffset = 0.075;
 
     public double odometryX;
     public double odometryY;
@@ -95,22 +99,30 @@ public class Odometry extends Thread{
             double deltaTickMiddle = currentEncoderMiddle - lastEncoderMiddle;
             double dL = wheelCircum * deltaTickL / ticksPer;
             double dR = wheelCircum * deltaTickR / ticksPer;
-            double dMiddle = wheelCircum * deltaTickMiddle / ticksPer;
+            double dM = (dL + dR) / 2;
+            double dAngle = (dR - dL) / LENGTH;
+            //Middle dead wheel is broken so we added a correction feature (scale factor) test
+            double dMiddle = 66.17647058823529*wheelCircum * deltaTickMiddle / ticksPer;
+            //measure of how much the middle wheel is different then the expected distance of a regular arch
+            double dMidChange;
+            if(dAngle != 0) {
+                dMidChange = dMiddle - (Math.cos(Math.PI / 2 - Math.atan2(yOffset, xOffset)) * dAngle * Math.sqrt(Math.pow(yOffset, 2) + Math.pow(xOffset + dM/dAngle, 2)));
+            }else{
+                dMidChange = dMiddle;
+            }
             velocityL = 1000*dL/(currentTime-lastTime);
             velocityR = 1000*dR/(currentTime-lastTime);
             velocityMiddle = 1000*dMiddle/(currentTime-lastTime);
-            double dM = (dL + dR) / 2;
-            double dAngle = (dR - dL) / LENGTH;
 
             if(dAngle != 0) {
                 odometryX = odometryX + (dM * Math.sin(dAngle) * Math.cos(odometryAngle + (dAngle / 2)) /
-                        (dAngle * Math.cos(dAngle / 2))) + (dMiddle*Math.cos((odometryAngle + (dAngle/2))-Math.PI/2));
+                        (dAngle * Math.cos(dAngle / 2))) + (dMidChange*Math.cos((odometryAngle + (dAngle/2))-Math.PI/2));
                 odometryY = odometryY + (dM * Math.sin(dAngle) * Math.sin(odometryAngle + (dAngle / 2)) /
-                        (dAngle * Math.cos(dAngle / 2))) + (dMiddle*Math.sin((odometryAngle + (dAngle/2))-Math.PI/2));
+                        (dAngle * Math.cos(dAngle / 2))) + (dMidChange*Math.sin((odometryAngle + (dAngle/2))-Math.PI/2));
                 odometryAngle = odometryAngle + dAngle;
             }else{
-                odometryX = odometryX + (dM * Math.cos(odometryAngle)) + (dMiddle*Math.cos((odometryAngle)-Math.PI/2));
-                odometryY = odometryY + (dM * Math.sin(odometryAngle)) + (dMiddle*Math.sin((odometryAngle)-Math.PI/2));
+                odometryX = odometryX + (dM * Math.cos(odometryAngle)) + (dMidChange*Math.cos((odometryAngle)-Math.PI/2));
+                odometryY = odometryY + (dM * Math.sin(odometryAngle)) + (dMidChange*Math.sin((odometryAngle)-Math.PI/2));
                 odometryAngle = odometryAngle + dAngle;
             }
             lastEncoderL = currentEncoderL;

@@ -45,7 +45,7 @@ public class Mark_6 {
     public Odometry odo;
     double initialAngle;
 
-    final double angleAccuracy = 0.01;
+    final double angleAccuracy = 0.001;
     final double distanceAccuracy = 0.01;
 
     LinearOpMode ln;

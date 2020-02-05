@@ -37,7 +37,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
     final int X = 0;
     final int Y = 1;
     final int Z = 2;
-    int stonePosition;
+    int stonePosition = 0;
 
     final double QUIT_TIME = 25;
     final double QUIT_X = FIELD_WIDTH-(3*SKYBRIDGE_LENGTH/4);
@@ -72,7 +72,7 @@ public class M5_Red_Quarry_Auto extends LinearOpMode {
         //}
         runtime.reset();
         waitForStart();
-        robot.setGrab(1);
+       // robot.setGrab(1);
         robot.forward(0.25, 0.3);
         robot.stopDrive();
         sleep(5000);

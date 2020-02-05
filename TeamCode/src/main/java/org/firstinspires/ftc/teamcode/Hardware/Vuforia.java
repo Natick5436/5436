@@ -230,9 +230,13 @@ public class Vuforia extends Thread {
         skystoneInit();
 
         inited = true;
-        while(ln.opModeIsActive()){
-            updateVuforia();
+        while(!ln.isStarted()&&!ln.isStopRequested()){
+            if (skystoneInit()) {
+            }else{
+                setZoom("5");
+            }
         }
+
     }
 
     public void setZoom(String zoom){

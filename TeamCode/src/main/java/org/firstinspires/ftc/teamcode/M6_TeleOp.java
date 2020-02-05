@@ -55,10 +55,11 @@ public class M6_TeleOp extends LinearOpMode {
                 drivePower = 0.5;
                 telemetry.addData("You are in Slow mode", "(click both stick buttons to engage fast mode)");
             }
-            telemetry.addData("Left deadwheel", robot.lB.getCurrentPosition());
-            telemetry.addData("right deadwheel", robot.rF.getCurrentPosition());
-            telemetry.addData("Middle  deadwheel", robot.lF.getCurrentPosition());
+            telemetry.addData("Left deadwheel", 5.08*Math.PI*robot.lB.getCurrentPosition()/8192);
+            telemetry.addData("right deadwheel", 5.08*Math.PI*robot.rF.getCurrentPosition()/8192);
+            telemetry.addData("Middle  deadwheel", 66.17647058823529*5.08*Math.PI*robot.lF.getCurrentPosition()/8192);
             telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
+            telemetry.addData("Heading", robot.getHeading());
             telemetry.update();
         }
     }
