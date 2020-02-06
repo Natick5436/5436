@@ -79,7 +79,7 @@ public class Mark_6 {
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //***Odometry init***
-        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), 5.08, 8192, 1, 0.4572, startX, startY, startAngle, - 1, 1, 1);
+        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), 5.08, 8192, 1, 0.38121, startX, startY, startAngle, -1, 1, -1);
         initialAngle = startAngle;
 
         //***IMU init***
@@ -139,29 +139,83 @@ public class Mark_6 {
 
     //Movement methods
     double startAngle;
-    final double percentCorrection = 0;
-    final double maxCorrectionAngle = Math.PI/12;
+    final double percentCorrection = 0.15;
+    final double maxCorrectionAngle = Math.PI/4;
     public void forward(double power){
-        double correctionIntensity = percentCorrection * power;
-        power *= (1-percentCorrection);
-        if(getStatus() != Mark_5.Status.DRIVING){
+        if(this.getStatus() != Mark_5.Status.FORWARD){
             startAngle = getHeading();
+            this.setStatus(Mark_5.Status.FORWARD);
         }
-        this.setStatus(Mark_5.Status.DRIVING);
-        double turnOffset;
-        if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
-            turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
-        }else{
-            turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
-        }
-        lF.setPower(power+turnOffset);
-        lB.setPower(power+turnOffset);
-        rF.setPower(power-turnOffset);
-        rB.setPower(power-turnOffset);
+        double error = getHeading()-startAngle;
+        double turnOffset = error/maxCorrectionAngle;
+        lF.setPower(Range.clip(power+turnOffset,-1,1));
+        lB.setPower(Range.clip(power+turnOffset,-1,1));
+        rF.setPower(Range.clip(power+turnOffset,-1,1));
+        rB.setPower(Range.clip(power+turnOffset,-1,1));
     }
     //this function only takes inputs from the front wheels of the robot
     public void forward(double power, double meters){
-
+        double angleError;
+        double turnOffset;
+        double startEncoderL = odo.left.getCurrentPosition();
+        double startEncoderR = odo.right.getCurrentPosition();
+        double currentEncoderL = odo.left.getCurrentPosition();
+        double currentEncoderR = odo.right.getCurrentPosition();
+        double distanceTraveledL = 0.0508*Math.PI*(currentEncoderL-startEncoderL)/8192;
+        double distanceTraveledR = 0.0508*Math.PI*(currentEncoderR-startEncoderR)/8192;
+        double lastTime = System.currentTimeMillis();
+        double currentTime = System.currentTimeMillis();
+        double currentErrorL = meters-distanceTraveledL;
+        double currentErrorR = meters-distanceTraveledR;
+        double lastErrorL = meters-distanceTraveledL;
+        double lastErrorR = meters-distanceTraveledR;
+        double errorDerivL = ((meters-distanceTraveledL)-lastErrorL)/(currentTime-lastTime);
+        double errorDerivR = ((meters-distanceTraveledR)-lastErrorR)/(currentTime-lastTime);
+        double prop = 1;
+        double deriv = 2;
+        double lowestPower = 0.1;
+        while(Math.abs(distanceTraveledL-meters) > distanceAccuracy && Math.abs(distanceTraveledR-meters) > distanceAccuracy){
+            currentTime = System.currentTimeMillis();
+            currentErrorL = meters-distanceTraveledL;
+            currentErrorR = meters-distanceTraveledR;
+            errorDerivL = (currentErrorL-lastErrorL)/(currentTime-lastTime);
+            errorDerivR = (currentErrorR-lastErrorR)/(currentTime-lastTime);
+            ln.telemetry.addData("Left error derivative", errorDerivL);
+            ln.telemetry.addData("right error derivative", errorDerivR);
+            angleError = getHeading()-startAngle;
+            turnOffset = angleError/maxCorrectionAngle;
+            if((meters-distanceTraveledL)>0) {
+                lF.setPower(Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1));
+                lB.setPower(Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1));
+            }else{
+                lF.setPower(Range.clip(-power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1));
+                lB.setPower(Range.clip(-power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1));
+            }
+            if(meters-distanceTraveledR>0) {
+                rF.setPower(Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1));
+                rB.setPower(Range.clip(power*(prop*currentErrorR/meters+ deriv*errorDerivR +  lowestPower), -1, 1));
+            }else{
+                rF.setPower(Range.clip(-power*(prop*currentErrorR/meters+ deriv*errorDerivR + lowestPower), -1, 1));
+                rB.setPower(Range.clip(-power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1));
+            }
+            currentEncoderL = odo.left.getCurrentPosition();
+            currentEncoderR = odo.right.getCurrentPosition();
+            distanceTraveledL = 0.0508*Math.PI*(currentEncoderL-startEncoderL)/8192;
+            distanceTraveledR = 0.0508*Math.PI*(currentEncoderR-startEncoderR)/8192;
+            lastTime = currentTime;
+            lastErrorL = currentErrorL;
+            lastErrorR = currentErrorR;
+            ln.telemetry.addData("distanceL",distanceTraveledL);
+            ln.telemetry.addData("distanceR",distanceTraveledR);
+            ln.telemetry.addData("distanceDiff",Math.abs(distanceTraveledL-meters));
+            ln.telemetry.addData("left power", lF.getPower());
+            ln.telemetry.addData("right power", rF.getPower());
+            ln.telemetry.update();
+            if(ln.isStopRequested()){
+                return;
+            }
+        }
+        stopDrive();
     }
     public void turn(double power){
         this.setStatus(Mark_5.Status.TURNING);

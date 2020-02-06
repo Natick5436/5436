@@ -233,9 +233,14 @@ public class Vuforia extends Thread {
         while(!ln.isStarted()&&!ln.isStopRequested()){
             if (skystoneInit()) {
             }else{
-                setZoom("5");
+                setZoom("35");
             }
+            ln.telemetry.addData("posP", getSkystonePosition());
+            ln.telemetry.update();
+            //X = -347, 107, 124
+            //X = -355,109, 180
         }
+
 
     }
 
@@ -251,6 +256,7 @@ public class Vuforia extends Thread {
         return inited;
     }
     //Vuforia methods
+    int pos;
     public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
@@ -282,8 +288,15 @@ public class Vuforia extends Thread {
             // express position (translation) of robot in inches.
             VectorF translation = lastLocation.getTranslation();
             skystonePosition = lastLocation.getTranslation();
-            ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                    translation.get(0), translation.get(1), translation.get(2));
+            /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
+                    translation.get(0), translation.get(1), translation.get(2));*/
+            if(translation.get(2) > 140){
+                pos = 3;
+            }else if (translation.get(2)< 140){
+                pos = 2;
+            }else{
+                pos = 1;
+            }
 
             // express the rotation of the robot in degrees.
             Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);

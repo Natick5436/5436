@@ -32,9 +32,9 @@ public class Odometry extends Thread{
     double velocityL, velocityR, velocityMiddle;
     double lastTime, currentTime;
 
-    private DeadWheel left;
-    private DeadWheel right;
-    private DeadWheel middle;
+    public DeadWheel left;
+    public DeadWheel right;
+    public DeadWheel middle;
 
     LinearOpMode ln;
     public Odometry(LinearOpMode linear, DeadWheel l, DeadWheel r, DeadWheel m, double wheelDiameter, double ticksPerMotorRev, double motorGearRatio, double LENGTH, double initialX, double initialY, double initialAngle, int lDirection, int rDirection, int mDirection){
@@ -106,7 +106,8 @@ public class Odometry extends Thread{
             //measure of how much the middle wheel is different then the expected distance of a regular arch
             double dMidChange;
             if(dAngle != 0) {
-                dMidChange = dMiddle - (Math.cos(Math.PI/2 - Math.atan2(yOffset, xOffset)) * dAngle * Math.sqrt(Math.pow(yOffset, 2) + Math.pow(xOffset + dM/dAngle, 2)));
+                //constant is the middle to angle ratio found in the calibration program
+                dMidChange = dMiddle - dAngle*0.082572;
             }else{
                 dMidChange = dMiddle;
             }
@@ -127,6 +128,7 @@ public class Odometry extends Thread{
             }
             lastEncoderL = currentEncoderL;
             lastEncoderR = currentEncoderR;
+            lastEncoderMiddle = currentEncoderMiddle;
             lastTime = currentTime;
         }
     }
