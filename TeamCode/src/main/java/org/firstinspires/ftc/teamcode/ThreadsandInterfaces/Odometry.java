@@ -106,7 +106,7 @@ public class Odometry extends Thread{
             //measure of how much the middle wheel is different then the expected distance of a regular arch
             double dMidChange;
             if(dAngle != 0) {
-                dMidChange = dMiddle - (Math.cos(Math.PI / 2 - Math.atan2(yOffset, xOffset)) * dAngle * Math.sqrt(Math.pow(yOffset, 2) + Math.pow(xOffset + dM/dAngle, 2)));
+                dMidChange = dMiddle - (Math.cos(Math.PI/2 - Math.atan2(yOffset, xOffset)) * dAngle * Math.sqrt(Math.pow(yOffset, 2) + Math.pow(xOffset + dM/dAngle, 2)));
             }else{
                 dMidChange = dMiddle;
             }
