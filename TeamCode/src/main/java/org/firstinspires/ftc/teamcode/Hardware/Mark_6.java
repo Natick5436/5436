@@ -119,9 +119,10 @@ public class Mark_6 {
     public void updatePDVelocityL(double v){
         double error = v-odo.getVelocityL();
         double time = System.currentTimeMillis();
-        double power = Range.clip( KP*error+KD*(error-lastErrorL)/(time-lastTimeL), -1, 1);
+        double power = Range.clip( KP*error+KD*(error-lastErrorL)/(time-lastTimeL) + v, -1, 1);
         lF.setPower(power);
         lB.setPower(power);
+        ln.telemetry.addData("Left Power", power);
         lastErrorL = error;
         lastTimeL = time;
     }
@@ -130,9 +131,10 @@ public class Mark_6 {
     public void updatePDVelocityR(double v){
         double error = v-odo.getVelocityR();
         double time = System.currentTimeMillis();
-        double power = Range.clip(KP*error+KD*(error-lastErrorR)/(time-lastTimeR), -1, 1);
+        double power = Range.clip(KP*error+KD*(error-lastErrorR)/(time-lastTimeR) + v, -1, 1);
         rF.setPower(power);
         rB.setPower(power);
+        ln.telemetry.addData("Right power", power);
         lastErrorR = error;
         lastTimeR = time;
     }
@@ -185,18 +187,38 @@ public class Mark_6 {
             angleError = getHeading()-startAngle;
             turnOffset = angleError/maxCorrectionAngle;
             if((meters-distanceTraveledL)>0) {
-                lF.setPower(Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1));
-                lB.setPower(Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1));
+                //Two range.clips so that turn offset can't be drowned out by high numbers (over 1 or less than -1) in the main PD feedback loop
+                lF.setPower(Range.clip(
+                        Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1)
+                                + turnOffset, -1, 1));
+                lB.setPower(Range.clip(
+                        Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1)
+                                + turnOffset, -1, 1));
             }else{
-                lF.setPower(Range.clip(-power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1));
-                lB.setPower(Range.clip(-power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1));
+                lF.setPower(Range.clip(
+                        Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1)
+                                + turnOffset, -1, 1));
+                lB.setPower(Range.clip(
+                        Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1)
+                                + turnOffset, -1, 1));
             }
             if(meters-distanceTraveledR>0) {
-                rF.setPower(Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1));
-                rB.setPower(Range.clip(power*(prop*currentErrorR/meters+ deriv*errorDerivR +  lowestPower), -1, 1));
+                rF.setPower(Range.clip(
+                        Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1)
+                                - turnOffset, -1, 1));
+                rB.setPower(Range.clip(
+                        Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1)
+                                - turnOffset, -1, 1));
             }else{
-                rF.setPower(Range.clip(-power*(prop*currentErrorR/meters+ deriv*errorDerivR + lowestPower), -1, 1));
-                rB.setPower(Range.clip(-power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1));
+                rF.setPower(Range.clip(
+                        Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1)
+                                - turnOffset, -1, 1));
+                rB.setPower(Range.clip(
+                        Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1)
+                                - turnOffset, -1, 1));
+            }
+            if(Math.abs(angleError)> Math.PI/4){
+                turn(power, startAngle);
             }
             currentEncoderL = odo.left.getCurrentPosition();
             currentEncoderR = odo.right.getCurrentPosition();
@@ -207,7 +229,8 @@ public class Mark_6 {
             lastErrorR = currentErrorR;
             ln.telemetry.addData("distanceL",distanceTraveledL);
             ln.telemetry.addData("distanceR",distanceTraveledR);
-            ln.telemetry.addData("distanceDiff",Math.abs(distanceTraveledL-meters));
+            ln.telemetry.addData("distanceDiffL",Math.abs(distanceTraveledL-meters));
+            ln.telemetry.addData("distanceDiffR",Math.abs(distanceTraveledR-meters));
             ln.telemetry.addData("left power", lF.getPower());
             ln.telemetry.addData("right power", rF.getPower());
             ln.telemetry.update();
@@ -382,6 +405,10 @@ public class Mark_6 {
         rF.setPower(0);
         rB.setPower(0);
     }*/
+
+    public void arch(double v){
+
+    }
 
     public void stopDrive(){
         lF.setPower(0);
