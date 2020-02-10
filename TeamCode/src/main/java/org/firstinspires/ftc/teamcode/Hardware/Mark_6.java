@@ -32,20 +32,20 @@ public class Mark_6 {
     Orientation angles;
 
     //wheel Diameter in cm
-    final double wheelDiameter = 10.0;
+    final double wheelDiameter = 5.08;
     //wheel Circumference in meters
     final double wheelCirc = wheelDiameter * Math.PI/100;
     //ticks per full revolution of the motor axle
-    final double ticksPerMotorRev = 383.6;
-    final double motorGearRatio = 0.5;
+    final double ticksPerMotorRev = 8192;
+    final double motorGearRatio = 1;
     //ticks per full revolution of the wheel
     final double ticksPer = motorGearRatio*ticksPerMotorRev;
-    final double LENGTH = 0.3;
+    final double LENGTH = 0.38121;
 
     public Odometry odo;
     double initialAngle;
 
-    final double angleAccuracy = 0.001;
+    final double angleAccuracy = 0.01;
     final double distanceAccuracy = 0.01;
 
     LinearOpMode ln;
@@ -112,7 +112,7 @@ public class Mark_6 {
     }
 
     //These functions use PD control to set the velocity of each dead wheel
-    final double KP = 1;
+    final double KP = 0.5;
     final double KD = 1;
     double lastErrorL;
     double lastTimeL;
@@ -125,6 +125,7 @@ public class Mark_6 {
         ln.telemetry.addData("Left Power", power);
         lastErrorL = error;
         lastTimeL = time;
+        ln.telemetry.addData("diffL",1000*(time-lastTimeL));
     }
     double lastErrorR;
     double lastTimeR;
@@ -137,18 +138,24 @@ public class Mark_6 {
         ln.telemetry.addData("Right power", power);
         lastErrorR = error;
         lastTimeR = time;
+        ln.telemetry.addData("diffR",1000*(time-lastTimeR));
     }
 
     //Movement methods
     double startAngle;
     final double percentCorrection = 0.15;
-    final double maxCorrectionAngle = Math.PI/4;
+    final double maxCorrectionAngle = Math.PI/16;
     public void forward(double power){
         if(this.getStatus() != Mark_5.Status.FORWARD){
             startAngle = getHeading();
             this.setStatus(Mark_5.Status.FORWARD);
         }
-        double error = getHeading()-startAngle;
+        double error;
+        if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+            error = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
+        }else{
+            error = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
+        }
         double turnOffset = error/maxCorrectionAngle;
         lF.setPower(Range.clip(power+turnOffset,-1,1));
         lB.setPower(Range.clip(power+turnOffset,-1,1));
@@ -363,51 +370,83 @@ public class Mark_6 {
     }
 
     public void strafe(double power) {
-        double correctionIntensity = percentCorrection * power;
-        power *= (1-percentCorrection);
-        if (getStatus() != Mark_5.Status.STRAFING) {
+        if(this.getStatus() != Mark_5.Status.STRAFING){
             startAngle = getHeading();
+            this.setStatus(Mark_5.Status.STRAFING);
         }
-        this.setStatus(Mark_5.Status.STRAFING);
-        double turnOffset;
+        double error;
         if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
-            turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+            error = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
         }else{
-            turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+            error = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
         }
-        lF.setPower(power+turnOffset);
-        lB.setPower(-power+turnOffset);
-        rF.setPower(-power-turnOffset);
-        rB.setPower(power-turnOffset);
+        double turnOffset = error/maxCorrectionAngle;
+        lF.setPower(Range.clip(power+turnOffset, -1, 1));
+        lB.setPower(Range.clip(-power+turnOffset, -1, 1));
+        rF.setPower(Range.clip(-power-turnOffset, -1, 1));
+        rB.setPower(Range.clip(power-turnOffset, -1, 1));
     }
-    /*public void strafe(double power, double distance){
-        double correctionIntensity = percentCorrection * power;
-        power *= (1-percentCorrection);
-        if (!(robotStatus == Mark_5.Status.STRAFING)) {
+    public void strafe(double power, double meters){
+        if(this.getStatus() != Mark_5.Status.STRAFING){
             startAngle = getHeading();
+            this.setStatus(Mark_5.Status.STRAFING);
         }
-        this.setStatus(Mark_5.Status.STRAFING);
-        double turnOffset;
-        while(Math.abs(distance-(deadWheel.getCurrentPosition()*odometryWheelCirc/ticksPerOdometryWheel)) > distanceAccuracy){
+        double angleError;
+        if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+            angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
+        }else{
+            angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
+        }
+        double turnOffset = angleError/maxCorrectionAngle;
+        double startEncoder = odo.middle.getCurrentPosition();
+        double currentEncoder = odo.middle.getCurrentPosition();
+        double distanceTraveled = 66.17647058823529*0.0508*Math.PI*(currentEncoder-startEncoder)/8192;
+        double distanceError = meters-distanceTraveled;
+        double lowestPower = 0.1;
+        while(Math.abs(distanceError)>distanceAccuracy){
             if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
-                turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+                angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
             }else{
-                turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+                angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
             }
-            lF.setPower(power+turnOffset);
-            lB.setPower(-power+turnOffset);
-            rF.setPower(-power-turnOffset);
-            rB.setPower(power-turnOffset);
+            turnOffset = angleError/maxCorrectionAngle;
+            if(distanceError > 0) {
+                lF.setPower(Range.clip(power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))+distanceError/meters*turnOffset);
+                lB.setPower(Range.clip(-power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))+distanceError/meters*turnOffset);
+                rF.setPower(Range.clip(-power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))-distanceError/meters*turnOffset);
+                rB.setPower(Range.clip(power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))-distanceError/meters*turnOffset);
+            }else if (distanceError < 0) {
+                lF.setPower(Range.clip(-power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))+distanceError/meters*turnOffset);
+                lB.setPower(Range.clip(power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))+distanceError/meters*turnOffset);
+                rF.setPower(Range.clip(power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))-distanceError/meters*turnOffset);
+                rB.setPower(Range.clip(-power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))-distanceError/meters*turnOffset);
+            }
+            currentEncoder = odo.middle.getCurrentPosition();
+            distanceTraveled = 66.17647058823529*0.0508*Math.PI*(currentEncoder-startEncoder)/8192;
+            distanceError = meters-distanceTraveled;
+            ln.telemetry.addData("Distance error", distanceError);
+            ln.telemetry.addData("angle error", angleError);
+            ln.telemetry.addData("lF motor power", lF.getPower());
+            ln.telemetry.update();
             if(ln.isStopRequested()){return;}
         }
-        lF.setPower(0);
-        lB.setPower(0);
-        rF.setPower(0);
-        rB.setPower(0);
-    }*/
+        turn(power, startAngle);
+        stopDrive();
+    }
 
-    public void arch(double v){
-
+    public void arch(double v, double r){
+        double rightLeftRatio = (r+LENGTH/2)/(r-LENGTH/2);
+            if (rightLeftRatio > 1) {
+                updatePDVelocityR(v);
+                updatePDVelocityL(v / rightLeftRatio);
+            } else if (rightLeftRatio < 1) {
+                updatePDVelocityL(v);
+                updatePDVelocityR(v * rightLeftRatio);
+            } else {
+                updatePDVelocityR(v);
+                updatePDVelocityL(v);
+            }
+            rightLeftRatio = (r + LENGTH / 2) / (r - LENGTH / 2);
     }
 
     public void stopDrive(){

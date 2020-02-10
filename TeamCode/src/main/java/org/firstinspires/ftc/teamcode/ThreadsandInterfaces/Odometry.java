@@ -115,6 +115,7 @@ public class Odometry extends Thread{
             velocityR = 1000*dR/(currentTime-lastTime);
             velocityMiddle = 1000*dMiddle/(currentTime-lastTime);
 
+
             if(dAngle != 0) {
                 odometryX = odometryX + (dM * Math.sin(dAngle) * Math.cos(odometryAngle + (dAngle / 2)) /
                         (dAngle * Math.cos(dAngle / 2))) + (dMidChange*Math.cos((odometryAngle + (dAngle/2))-Math.PI/2));

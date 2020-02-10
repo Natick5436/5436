@@ -5,6 +5,7 @@ import android.hardware.camera2.CameraDevice;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.vuforia.CameraField;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -290,18 +291,19 @@ public class Vuforia extends Thread {
             skystonePosition = lastLocation.getTranslation();
             /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                     translation.get(0), translation.get(1), translation.get(2));*/
-            if(translation.get(2) > 140){
+            if(translation.get(0) < 100){
                 pos = 3;
-            }else if (translation.get(2)< 140){
+            }else if (translation.get(0)> 100){
                 pos = 2;
             }else{
                 pos = 1;
             }
+            ln.telemetry.addData("pos",pos);
 
             // express the rotation of the robot in degrees.
             Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
             skystoneOrientation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
-            ln.telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+           // ln.telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
         }
         else {
             ln.telemetry.addData("Visible Target", "none");

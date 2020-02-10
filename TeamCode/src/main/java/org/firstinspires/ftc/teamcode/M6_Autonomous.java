@@ -55,12 +55,18 @@ public class M6_Autonomous extends LinearOpMode {
         t1.start();
         robot.initialize(hardwareMap, 0, 0, 0, false);
         runtime.reset();
-        robot.odo.start();
         waitForStart();
+        robot.odo.start();
+        robot.strafe(1,-0.5);
+       /* while(opModeIsActive()) {
+            robot.arch(0.5, 0.3*gamepad1.left_stick_y);
+            telemetry.addData("CurrentTime", System.currentTimeMillis());
+            telemetry.update();
+        }*/
         telemetry.addData("angle", robot.getHeading());
         telemetry.update();
-        robot.forward(0.5, 0.5);
-      //  robot.turn(0.3,Math.PI/2, false);
+        //robot.forward(0.5, 0.5);
+        //robot.turn(0.3,Math.PI/2, false);
         telemetry.addData("angle", robot.getHeading());
         telemetry.update();
         while(opModeIsActive()){
