@@ -144,107 +144,105 @@ public class Mark_6 {
     //Movement methods
     double startAngle;
     final double percentCorrection = 0.15;
-    final double maxCorrectionAngle = Math.PI/16;
+    final double maxCorrectionAngle = Math.PI/8;
     public void forward(double power){
         if(this.getStatus() != Mark_5.Status.FORWARD){
             startAngle = getHeading();
             this.setStatus(Mark_5.Status.FORWARD);
         }
-        double error;
+        double angleError;
         if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
-            error = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
+            angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
         }else{
-            error = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
+            angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
         }
-        double turnOffset = error/maxCorrectionAngle;
+        double turnOffset = angleError/maxCorrectionAngle;
         lF.setPower(Range.clip(power+turnOffset,-1,1));
         lB.setPower(Range.clip(power+turnOffset,-1,1));
-        rF.setPower(Range.clip(power+turnOffset,-1,1));
-        rB.setPower(Range.clip(power+turnOffset,-1,1));
+        rF.setPower(Range.clip(power-turnOffset,-1,1));
+        rB.setPower(Range.clip(power-turnOffset,-1,1));
     }
     //this function only takes inputs from the front wheels of the robot
     public void forward(double power, double meters){
-        double angleError;
-        double turnOffset;
-        double startEncoderL = odo.left.getCurrentPosition();
-        double startEncoderR = odo.right.getCurrentPosition();
-        double currentEncoderL = odo.left.getCurrentPosition();
-        double currentEncoderR = odo.right.getCurrentPosition();
-        double distanceTraveledL = 0.0508*Math.PI*(currentEncoderL-startEncoderL)/8192;
-        double distanceTraveledR = 0.0508*Math.PI*(currentEncoderR-startEncoderR)/8192;
-        double lastTime = System.currentTimeMillis();
-        double currentTime = System.currentTimeMillis();
-        double currentErrorL = meters-distanceTraveledL;
-        double currentErrorR = meters-distanceTraveledR;
-        double lastErrorL = meters-distanceTraveledL;
-        double lastErrorR = meters-distanceTraveledR;
-        double errorDerivL = ((meters-distanceTraveledL)-lastErrorL)/(currentTime-lastTime);
-        double errorDerivR = ((meters-distanceTraveledR)-lastErrorR)/(currentTime-lastTime);
-        double prop = 1;
-        double deriv = 2;
-        double lowestPower = 0.1;
-        while(Math.abs(distanceTraveledL-meters) > distanceAccuracy && Math.abs(distanceTraveledR-meters) > distanceAccuracy){
-            currentTime = System.currentTimeMillis();
-            currentErrorL = meters-distanceTraveledL;
-            currentErrorR = meters-distanceTraveledR;
-            errorDerivL = (currentErrorL-lastErrorL)/(currentTime-lastTime);
-            errorDerivR = (currentErrorR-lastErrorR)/(currentTime-lastTime);
-            ln.telemetry.addData("Left error derivative", errorDerivL);
-            ln.telemetry.addData("right error derivative", errorDerivR);
-            angleError = getHeading()-startAngle;
-            turnOffset = angleError/maxCorrectionAngle;
-            if((meters-distanceTraveledL)>0) {
-                //Two range.clips so that turn offset can't be drowned out by high numbers (over 1 or less than -1) in the main PD feedback loop
-                lF.setPower(Range.clip(
-                        Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1)
-                                + turnOffset, -1, 1));
-                lB.setPower(Range.clip(
-                        Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1)
-                                + turnOffset, -1, 1));
-            }else{
-                lF.setPower(Range.clip(
-                        Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1)
-                                + turnOffset, -1, 1));
-                lB.setPower(Range.clip(
-                        Range.clip(power*(prop*currentErrorL/meters + deriv*errorDerivL + lowestPower), -1, 1)
-                                + turnOffset, -1, 1));
-            }
-            if(meters-distanceTraveledR>0) {
-                rF.setPower(Range.clip(
-                        Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1)
-                                - turnOffset, -1, 1));
-                rB.setPower(Range.clip(
-                        Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1)
-                                - turnOffset, -1, 1));
-            }else{
-                rF.setPower(Range.clip(
-                        Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1)
-                                - turnOffset, -1, 1));
-                rB.setPower(Range.clip(
-                        Range.clip(power*(prop*currentErrorR/meters + deriv*errorDerivR + lowestPower), -1, 1)
-                                - turnOffset, -1, 1));
-            }
-            if(Math.abs(angleError)> Math.PI/4){
-                turn(power, startAngle);
-            }
-            currentEncoderL = odo.left.getCurrentPosition();
-            currentEncoderR = odo.right.getCurrentPosition();
-            distanceTraveledL = 0.0508*Math.PI*(currentEncoderL-startEncoderL)/8192;
-            distanceTraveledR = 0.0508*Math.PI*(currentEncoderR-startEncoderR)/8192;
-            lastTime = currentTime;
-            lastErrorL = currentErrorL;
-            lastErrorR = currentErrorR;
-            ln.telemetry.addData("distanceL",distanceTraveledL);
-            ln.telemetry.addData("distanceR",distanceTraveledR);
-            ln.telemetry.addData("distanceDiffL",Math.abs(distanceTraveledL-meters));
-            ln.telemetry.addData("distanceDiffR",Math.abs(distanceTraveledR-meters));
-            ln.telemetry.addData("left power", lF.getPower());
-            ln.telemetry.addData("right power", rF.getPower());
-            ln.telemetry.update();
-            if(ln.isStopRequested()){
-                return;
-            }
+        if(this.getStatus() != Mark_5.Status.FORWARD){
+            startAngle = getHeading();
+            this.setStatus(Mark_5.Status.FORWARD);
         }
+        double angleError;
+        if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+            angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
+        }else{
+            angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
+        }
+        double turnOffset = angleError/maxCorrectionAngle;
+        double startEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+        double currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+        double distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
+        double distanceError = meters-distanceTraveled;
+        double lowestPower = 0.1;
+        if(distanceError > 0){
+            while(distanceError > 0){
+                double newPower = power*(Range.clip(distanceError/meters+lowestPower, -(1-turnOffset), (1-turnOffset)));
+                if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+                    angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
+                }else{
+                    angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
+                }
+                turnOffset = angleError/maxCorrectionAngle;
+                if(distanceError > 0) {
+                    lF.setPower(newPower + turnOffset);
+                    lB.setPower(newPower + turnOffset);
+                    rF.setPower(newPower - turnOffset);
+                    rB.setPower(newPower - turnOffset);
+                }else{
+                    lF.setPower(-newPower + turnOffset);
+                    lB.setPower(-newPower + turnOffset);
+                    rF.setPower(-newPower - turnOffset);
+                    rB.setPower(-newPower - turnOffset);
+                }
+                if(Math.abs(angleError) > maxCorrectionAngle/2){
+                    turn(0.5, startAngle);
+                }
+                currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+                distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
+                distanceError = meters-distanceTraveled;
+            }
+            lF.setPower(-power);
+            lB.setPower(-power);
+            rF.setPower(-power);
+            rB.setPower(-power);
+        }else{
+            while(distanceError < 0){
+                double newPower = power*(Range.clip(distanceError/meters+lowestPower, -(1-turnOffset), (1-turnOffset)));
+                if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+                    angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
+                }else{
+                    angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
+                }
+                turnOffset = angleError/maxCorrectionAngle;
+                if(distanceError > 0) {
+                    lF.setPower(newPower + turnOffset);
+                    lB.setPower(newPower + turnOffset);
+                    rF.setPower(newPower - turnOffset);
+                    rB.setPower(newPower - turnOffset);
+                }else{
+                    lF.setPower(-newPower + turnOffset);
+                    lB.setPower(-newPower + turnOffset);
+                    rF.setPower(-newPower - turnOffset);
+                    rB.setPower(-newPower - turnOffset);
+                }
+                if(Math.abs(angleError) > maxCorrectionAngle/2){
+                    turn(0.5, startAngle);
+                }
+                currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+                distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
+                distanceError = meters-distanceTraveled;
+                }
+            lF.setPower(power);
+            lB.setPower(power);
+            rF.setPower(power);
+            rB.setPower(power);
+            }
         stopDrive();
     }
     public void turn(double power){
@@ -403,23 +401,28 @@ public class Mark_6 {
         double distanceTraveled = 66.17647058823529*0.0508*Math.PI*(currentEncoder-startEncoder)/8192;
         double distanceError = meters-distanceTraveled;
         double lowestPower = 0.1;
-        while(Math.abs(distanceError)>distanceAccuracy){
+        if(distanceError > 0){
+        while(distanceError>0){
             if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
                 angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
             }else{
                 angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
             }
             turnOffset = angleError/maxCorrectionAngle;
+            double newPower = power*(Range.clip(distanceError/meters+lowestPower, -(1-turnOffset), (1-turnOffset)));
             if(distanceError > 0) {
-                lF.setPower(Range.clip(power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))+distanceError/meters*turnOffset);
-                lB.setPower(Range.clip(-power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))+distanceError/meters*turnOffset);
-                rF.setPower(Range.clip(-power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))-distanceError/meters*turnOffset);
-                rB.setPower(Range.clip(power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))-distanceError/meters*turnOffset);
+                lF.setPower(newPower + turnOffset);
+                lB.setPower(-newPower + turnOffset);
+                rF.setPower(-newPower - turnOffset);
+                rB.setPower(newPower - turnOffset);
             }else if (distanceError < 0) {
-                lF.setPower(Range.clip(-power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))+distanceError/meters*turnOffset);
-                lB.setPower(Range.clip(power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))+distanceError/meters*turnOffset);
-                rF.setPower(Range.clip(power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))-distanceError/meters*turnOffset);
-                rB.setPower(Range.clip(-power*Math.abs(distanceError/meters+lowestPower), -(1-distanceError/meters*turnOffset), (1-distanceError/meters*turnOffset))-distanceError/meters*turnOffset);
+                lF.setPower(-newPower + turnOffset);
+                lB.setPower(newPower + turnOffset);
+                rF.setPower(newPower - turnOffset);
+                rB.setPower(-newPower - turnOffset);
+            }
+            if(Math.abs(angleError) > maxCorrectionAngle/2){
+                turn(0.5, startAngle);
             }
             currentEncoder = odo.middle.getCurrentPosition();
             distanceTraveled = 66.17647058823529*0.0508*Math.PI*(currentEncoder-startEncoder)/8192;
@@ -430,7 +433,39 @@ public class Mark_6 {
             ln.telemetry.update();
             if(ln.isStopRequested()){return;}
         }
-        turn(power, startAngle);
+        }else{
+            while(distanceError<0){
+                if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
+                    angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
+                }else{
+                    angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
+                }
+                turnOffset = angleError/maxCorrectionAngle;
+                double newPower = power*(Range.clip(distanceError/meters+lowestPower, -(1-turnOffset), (1-turnOffset)));
+                if(distanceError > 0) {
+                    lF.setPower(newPower + turnOffset);
+                    lB.setPower(-newPower + turnOffset);
+                    rF.setPower(-newPower - turnOffset);
+                    rB.setPower(newPower - turnOffset);
+                }else if (distanceError < 0) {
+                    lF.setPower(-newPower + turnOffset);
+                    lB.setPower(newPower + turnOffset);
+                    rF.setPower(newPower - turnOffset);
+                    rB.setPower(-newPower - turnOffset);
+                }
+                if(Math.abs(angleError) > maxCorrectionAngle/2){
+                    turn(0.5, startAngle);
+                }
+                currentEncoder = odo.middle.getCurrentPosition();
+                distanceTraveled = 66.17647058823529*0.0508*Math.PI*(currentEncoder-startEncoder)/8192;
+                distanceError = meters-distanceTraveled;
+                ln.telemetry.addData("Distance error", distanceError);
+                ln.telemetry.addData("angle error", angleError);
+                ln.telemetry.addData("lF motor power", lF.getPower());
+                ln.telemetry.update();
+                if(ln.isStopRequested()){return;}
+            }
+        }
         stopDrive();
     }
 
@@ -484,8 +519,12 @@ public class Mark_6 {
                 currentEncoder = (odo.left.getCurrentPosition() + odo.right.getCurrentPosition()) / 2;
                 distanceTraveled = wheelCirc * (currentEncoder - startEncoder) / ticksPer;
                 error = meters - distanceTraveled;
+                if(ln.isStopRequested()){return;}
             }
-            stopDrive();
+            lF.setPower(-v);
+            lB.setPower(-v);
+            rF.setPower(-v);
+            rB.setPower(-v);
         }else{
             while (error < 0) {
                 rightLeftRatio = (r + LENGTH / 2) / (r - LENGTH / 2);
@@ -515,9 +554,14 @@ public class Mark_6 {
                 currentEncoder = (odo.left.getCurrentPosition() + odo.right.getCurrentPosition()) / 2;
                 distanceTraveled = wheelCirc * (currentEncoder - startEncoder) / ticksPer;
                 error = meters - distanceTraveled;
+                if(ln.isStopRequested()){return;}
             }
-            stopDrive();
+            lF.setPower(v);
+            lB.setPower(v);
+            rF.setPower(v);
+            rB.setPower(v);
         }
+        stopDrive();
     }
 
     public void stopDrive(){
@@ -528,22 +572,24 @@ public class Mark_6 {
     }
 
     public void angleStrafe(double power, double angle){
-        double correctionIntensity = percentCorrection * power;
-        power *= (1-percentCorrection);
-        if (getStatus() != Mark_5.Status.ANGLE_STRAFING) {
+        if(this.getStatus() != Mark_5.Status.ANGLE_STRAFING){
             startAngle = getHeading();
+            this.setStatus(Mark_5.Status.ANGLE_STRAFING);
         }
-        this.setStatus(Mark_5.Status.ANGLE_STRAFING);
-        double turnOffset;
+        double angleError;
         if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
-            turnOffset = Range.clip(correctionIntensity * (ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+            angleError = ACMath.toCompassAngle(getHeading()) - ACMath.toCompassAngle(startAngle);
         }else{
-            turnOffset = Range.clip(correctionIntensity * (ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle)) / maxCorrectionAngle, -correctionIntensity, correctionIntensity);
+            angleError = ACMath.toStandardAngle(getHeading()) - ACMath.toStandardAngle(startAngle);
         }
-        lF.setPower(power*Math.sin(angle + Math.PI/4)+turnOffset);
-        lB.setPower(power*Math.sin(angle - Math.PI/4)+turnOffset);
-        rB.setPower(power*Math.sin(angle + Math.PI/4)-turnOffset);
-        rF.setPower(power*Math.sin(angle - Math.PI/4)-turnOffset);
+        double turnOffset = angleError/maxCorrectionAngle;
+        lF.setPower(Range.clip(power*Math.sin(angle + Math.PI/4), -(1-turnOffset), (1-turnOffset))+turnOffset);
+        lB.setPower(Range.clip(power*Math.sin(angle - Math.PI/4), -(1-turnOffset), (1-turnOffset))+turnOffset);
+        rB.setPower(Range.clip(power*Math.sin(angle + Math.PI/4), -(1-turnOffset), (1-turnOffset))-turnOffset);
+        rF.setPower(Range.clip(power*Math.sin(angle - Math.PI/4), -(1-turnOffset), (1-turnOffset))-turnOffset);
+    }
+    public void angleStrafe(double power, double angle, double meters){
+
     }
     public void goToDeltaPosition(double power, double meters, double targetAngle){
         turn(power, targetAngle);

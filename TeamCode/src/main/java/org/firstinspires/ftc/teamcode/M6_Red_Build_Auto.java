@@ -20,22 +20,27 @@ public class M6_Red_Build_Auto  extends LinearOpMode {
         int itemSelected = 0;
         String[] settingNames = {"Move foundation: ", "Park wall side: ", "Travel wall side: ", "Help Skystone: ", "Help far side on quarry first: "};
         boolean[] settings = new boolean[settingNames.length];
+        boolean active = false;
         while(!isStarted() && !isStopRequested()){
-            if(gamepad1.dpad_up){
+            if(gamepad1.dpad_up && !active){
                 if(itemSelected >= settingNames.length-1){
                     itemSelected = 0;
                 }else{
                     itemSelected++;
                 }
-            }else if(gamepad1.dpad_down){
+                active = true;
+            }else if(gamepad1.dpad_down && !active){
                 if(itemSelected <= 0){
                     itemSelected = settingNames.length-1;
                 }else{
                     itemSelected--;
                 }
-            }
-            if(gamepad1.dpad_left|| gamepad1.dpad_right){
+                active = true;
+            }else if((gamepad1.dpad_left|| gamepad1.dpad_right)&& !active){
                 settings[itemSelected] = !settings[itemSelected];
+                active = true;
+            }else{
+                active = false;
             }
             if(!settings[3]){
                 settings[4] = false;
