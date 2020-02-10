@@ -29,4 +29,11 @@ public class ACMath{
             return false;
         }
     }
+
+    public static double archToChord(double archLength, double angleTended){
+        return (archLength*Math.sin(angleTended)/(angleTended*Math.cos(angleTended/2)));
+    }
+    public static double chordToArch(double chordLength, double angleTended){
+        return (chordLength*Math.cos(angleTended/2)*angleTended/Math.sin(angleTended));
+    }
 }
