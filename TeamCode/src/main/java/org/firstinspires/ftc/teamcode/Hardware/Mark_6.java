@@ -449,6 +449,77 @@ public class Mark_6 {
             rightLeftRatio = (r + LENGTH / 2) / (r - LENGTH / 2);
     }
 
+    public void arch(double v, double r, double meters){
+        double rightLeftRatio = (r+LENGTH/2)/(r-LENGTH/2);
+        double startEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+        double currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+        double distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
+        double error = meters-distanceTraveled;
+        if(error>0) {
+            while (error > 0) {
+                rightLeftRatio = (r + LENGTH / 2) / (r - LENGTH / 2);
+                if (error > 0) {
+                    if (rightLeftRatio > 1) {
+                        updatePDVelocityR(v);
+                        updatePDVelocityL(v / rightLeftRatio);
+                    } else if (rightLeftRatio < 1) {
+                        updatePDVelocityL(v);
+                        updatePDVelocityR(v * rightLeftRatio);
+                    } else {
+                        updatePDVelocityR(v);
+                        updatePDVelocityL(v);
+                    }
+                } else {
+                    if (rightLeftRatio > 1) {
+                        updatePDVelocityR(-v);
+                        updatePDVelocityL(-v / rightLeftRatio);
+                    } else if (rightLeftRatio < 1) {
+                        updatePDVelocityL(-v);
+                        updatePDVelocityR(-v * rightLeftRatio);
+                    } else {
+                        updatePDVelocityR(-v);
+                        updatePDVelocityL(-v);
+                    }
+                }
+                currentEncoder = (odo.left.getCurrentPosition() + odo.right.getCurrentPosition()) / 2;
+                distanceTraveled = wheelCirc * (currentEncoder - startEncoder) / ticksPer;
+                error = meters - distanceTraveled;
+            }
+            stopDrive();
+        }else{
+            while (error < 0) {
+                rightLeftRatio = (r + LENGTH / 2) / (r - LENGTH / 2);
+                if (error > 0) {
+                    if (rightLeftRatio > 1) {
+                        updatePDVelocityR(v);
+                        updatePDVelocityL(v / rightLeftRatio);
+                    } else if (rightLeftRatio < 1) {
+                        updatePDVelocityL(v);
+                        updatePDVelocityR(v * rightLeftRatio);
+                    } else {
+                        updatePDVelocityR(v);
+                        updatePDVelocityL(v);
+                    }
+                } else {
+                    if (rightLeftRatio > 1) {
+                        updatePDVelocityR(-v);
+                        updatePDVelocityL(-v / rightLeftRatio);
+                    } else if (rightLeftRatio < 1) {
+                        updatePDVelocityL(-v);
+                        updatePDVelocityR(-v * rightLeftRatio);
+                    } else {
+                        updatePDVelocityR(-v);
+                        updatePDVelocityL(-v);
+                    }
+                }
+                currentEncoder = (odo.left.getCurrentPosition() + odo.right.getCurrentPosition()) / 2;
+                distanceTraveled = wheelCirc * (currentEncoder - startEncoder) / ticksPer;
+                error = meters - distanceTraveled;
+            }
+            stopDrive();
+        }
+    }
+
     public void stopDrive(){
         lF.setPower(0);
         lB.setPower(0);
@@ -477,6 +548,35 @@ public class Mark_6 {
     public void goToDeltaPosition(double power, double meters, double targetAngle){
         turn(power, targetAngle);
         forward(power, meters);
+    }
+    public void goToDeltaCurvePosition(double v, double x, double y){
+        double angleBetween;
+        double heading = getHeading();
+        if(ACMath.compassAngleShorter(Math.atan2(y, x), heading)) {
+            angleBetween = ACMath.toCompassAngle(Math.atan2(y, x)) - ACMath.toCompassAngle(heading);
+        }else{
+            angleBetween = ACMath.toStandardAngle(Math.atan2(y, x)) - ACMath.toStandardAngle(heading);
+        }
+        double radius;
+        if(angleBetween > 0){
+            radius = Math.hypot(x, y)*Math.sin(Math.PI/2-angleBetween)/Math.sin(Math.PI-2*(Math.PI/2-angleBetween));
+            if(Math.abs(angleBetween) > Math.PI/2) {
+                arch(v, radius, -ACMath.chordToArch(Math.hypot(x, y), Math.PI - 2*(Math.PI/2 - angleBetween)));
+            }else{
+                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI - 2*(Math.PI/2 - angleBetween)));
+            }
+        }else if(angleBetween < 0){
+            radius = Math.hypot(x, y)*Math.sin(-Math.PI/2-angleBetween)/Math.sin(Math.PI-2*(-Math.PI/2-angleBetween));
+            if(Math.abs(angleBetween) > Math.PI/2) {
+                arch(v, radius, -ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(-Math.PI/2-angleBetween)));
+            }else{
+                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(-Math.PI/2-angleBetween)));
+            }
+        }else if(angleBetween == Math.PI){
+            forward(v, -Math.hypot(x, y));
+        }else{
+            forward(v, Math.hypot(x, y));
+        }
     }
     public void goToAbsolutePosition(double power, double x, double y)throws InterruptedException{
         double deltaX = x-odo.getX();

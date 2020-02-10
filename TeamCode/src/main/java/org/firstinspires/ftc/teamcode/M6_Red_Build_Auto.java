@@ -53,34 +53,4 @@ public class M6_Red_Build_Auto  extends LinearOpMode {
         runtime.reset();
 
     }
-    public void goToDeltaCurvePosition(double v, double x, double y){
-        double angleBetween;
-        double heading = robot.getHeading();
-        if(ACMath.compassAngleShorter(Math.atan2(y, x), heading)) {
-            angleBetween = ACMath.toCompassAngle(Math.atan2(y, x)) - ACMath.toCompassAngle(heading);
-        }else{
-            angleBetween = ACMath.toStandardAngle(Math.atan2(y, x)) - ACMath.toStandardAngle(heading);
-        }
-        double radius;
-        if(angleBetween > 0){
-            radius = Math.hypot(x, y)*Math.sin(Math.PI/2-angleBetween)/Math.sin(Math.PI-2*(Math.PI/2-angleBetween));
-            if(Math.abs(angleBetween) > Math.PI/2) {
-                arch(-v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI - 2*(Math.PI/2 - angleBetween)));
-            }else{
-                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI - 2*(Math.PI/2 - angleBetween)));
-            }
-        }else if(angleBetween < 0){
-            radius = Math.hypot(x, y)*Math.sin(-Math.PI/2-angleBetween)/Math.sin(Math.PI-2*(-Math.PI/2-angleBetween));
-            if(Math.abs(angleBetween) > Math.PI/2) {
-                arch(-v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(-Math.PI/2-angleBetween)));
-            }else{
-                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(-Math.PI/2-angleBetween)));
-            }
-        }else if(angleBetween == Math.PI){
-            robot.forward(v, -Math.hypot(x, y));
-        }else{
-            robot.forward(v, Math.hypot(x, y));
-        }
-    }
-    public void arch(double v, double r, double meters){}
 }
