@@ -291,6 +291,7 @@ public class Vuforia extends Thread {
             skystonePosition = lastLocation.getTranslation();
             /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                     translation.get(0), translation.get(1), translation.get(2));*/
+            ln.telemetry.addData("x-position",translation.get(0));
             if(translation.get(0) < 100){
                 pos = 3;
             }else if (translation.get(0)> 100){
