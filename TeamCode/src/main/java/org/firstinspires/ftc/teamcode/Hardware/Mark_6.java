@@ -551,10 +551,12 @@ public class Mark_6 {
                 error = meters - distanceTraveled;
                 if(ln.isStopRequested()){return;}
             }
-            lF.setPower(-v);
-            lB.setPower(-v);
-            rF.setPower(-v);
-            rB.setPower(-v);
+            if(stop) {
+                lF.setPower(-v);
+                lB.setPower(-v);
+                rF.setPower(-v);
+                rB.setPower(-v);
+            }
         }else{
             while (error < 0) {
                 rightLeftRatio = (r + LENGTH / 2) / (r - LENGTH / 2);
@@ -586,10 +588,12 @@ public class Mark_6 {
                 error = meters - distanceTraveled;
                 if(ln.isStopRequested()){return;}
             }
-            lF.setPower(v);
-            lB.setPower(v);
-            rF.setPower(v);
-            rB.setPower(v);
+            if(stop) {
+                lF.setPower(v);
+                lB.setPower(v);
+                rF.setPower(v);
+                rB.setPower(v);
+            }
         }
         stopDrive();
     }
