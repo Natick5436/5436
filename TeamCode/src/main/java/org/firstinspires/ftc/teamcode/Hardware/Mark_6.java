@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchDevice;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.ReadWriteFile;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -16,6 +17,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.Math.ACMath;
 import org.firstinspires.ftc.teamcode.ThreadsandInterfaces.Odometry;
+
+import com.qualcomm.robotcore.util.ReadWriteFile;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
+import java.io.File;
+
 
 public class Mark_6 {
     private Mark_5.Status robotStatus;
@@ -40,7 +48,12 @@ public class Mark_6 {
     final double motorGearRatio = 1;
     //ticks per full revolution of the wheel
     final double ticksPer = motorGearRatio*ticksPerMotorRev;
-    final double LENGTH = 0.38121;
+    double LENGTH = 0.38121;
+
+    public static final double middleDeadWheelCorrection = 66.17647058823529;
+
+    File wheelBaseSeparationFile = AppUtil.getInstance().getSettingsFile("wheelBaseSeparation.txt");
+    File horizontalTickOffsetFile = AppUtil.getInstance().getSettingsFile("horizontalTickOffset.txt");
 
     public Odometry odo;
     double initialAngle;
@@ -79,7 +92,9 @@ public class Mark_6 {
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //***Odometry init***
-        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), 5.08, 8192, 1, 0.38121, startX, startY, startAngle, -1, 1, -1);
+        LENGTH = Double.parseDouble(ReadWriteFile.readFile(wheelBaseSeparationFile).trim());
+        double naturalMiddleMovementPerRadians = Double.parseDouble(ReadWriteFile.readFile(horizontalTickOffsetFile).trim());
+        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, naturalMiddleMovementPerRadians, startX, startY, startAngle, -1, 1, -1);
         initialAngle = startAngle;
 
         //***IMU init***
@@ -143,8 +158,7 @@ public class Mark_6 {
 
     //Movement methods
     double startAngle;
-    final double percentCorrection = 0.15;
-    final double maxCorrectionAngle = Math.PI/8;
+    final double maxCorrectionAngle = Math.PI/4;
     public void forward(double power){
         if(this.getStatus() != Mark_5.Status.FORWARD){
             startAngle = getHeading();
@@ -162,8 +176,7 @@ public class Mark_6 {
         rF.setPower(Range.clip(power-turnOffset,-1,1));
         rB.setPower(Range.clip(power-turnOffset,-1,1));
     }
-    //this function only takes inputs from the front wheels of the robot
-    public void forward(double power, double meters){
+    public void forward(double power, double meters, boolean stop){
         if(this.getStatus() != Mark_5.Status.FORWARD){
             startAngle = getHeading();
             this.setStatus(Mark_5.Status.FORWARD);
@@ -207,10 +220,12 @@ public class Mark_6 {
                 distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
                 distanceError = meters-distanceTraveled;
             }
-            lF.setPower(-power);
-            lB.setPower(-power);
-            rF.setPower(-power);
-            rB.setPower(-power);
+            if(stop) {
+                lF.setPower(-power);
+                lB.setPower(-power);
+                rF.setPower(-power);
+                rB.setPower(-power);
+            }
         }else{
             while(distanceError < 0){
                 double newPower = power*(Range.clip(distanceError/meters+lowestPower, -(1-turnOffset), (1-turnOffset)));
@@ -238,13 +253,16 @@ public class Mark_6 {
                 distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
                 distanceError = meters-distanceTraveled;
                 }
-            lF.setPower(power);
-            lB.setPower(power);
-            rF.setPower(power);
-            rB.setPower(power);
+            if(stop) {
+                lF.setPower(power);
+                lB.setPower(power);
+                rF.setPower(power);
+                rB.setPower(power);
+            }
             }
         stopDrive();
     }
+
     public void turn(double power){
         this.setStatus(Mark_5.Status.TURNING);
         rF.setPower(power);
@@ -311,7 +329,7 @@ public class Mark_6 {
         lF.setPower(0);
         lB.setPower(0);
     }
-    public void turn(double power, double targetAngle,boolean override){
+    public void turn(double power, double targetAngle, boolean override){
         double angle = getHeading();
         double targetAngleDelta;
         if(override) {
@@ -384,7 +402,7 @@ public class Mark_6 {
         rF.setPower(Range.clip(-power-turnOffset, -1, 1));
         rB.setPower(Range.clip(power-turnOffset, -1, 1));
     }
-    public void strafe(double power, double meters){
+    public void strafe(double power, double meters, boolean stop){
         if(this.getStatus() != Mark_5.Status.STRAFING){
             startAngle = getHeading();
             this.setStatus(Mark_5.Status.STRAFING);
@@ -398,7 +416,7 @@ public class Mark_6 {
         double turnOffset = angleError/maxCorrectionAngle;
         double startEncoder = odo.middle.getCurrentPosition();
         double currentEncoder = odo.middle.getCurrentPosition();
-        double distanceTraveled = 66.17647058823529*0.0508*Math.PI*(currentEncoder-startEncoder)/8192;
+        double distanceTraveled = middleDeadWheelCorrection*wheelCirc*(currentEncoder-startEncoder)/ticksPer;
         double distanceError = meters-distanceTraveled;
         double lowestPower = 0.1;
         if(distanceError > 0){
@@ -433,6 +451,12 @@ public class Mark_6 {
             ln.telemetry.update();
             if(ln.isStopRequested()){return;}
         }
+        if(stop){
+            lF.setPower(-power);
+            lB.setPower(power);
+            rF.setPower(power);
+            rB.setPower(-power);
+        }
         }else{
             while(distanceError<0){
                 if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
@@ -465,10 +489,17 @@ public class Mark_6 {
                 ln.telemetry.update();
                 if(ln.isStopRequested()){return;}
             }
+            if(stop){
+                lF.setPower(power);
+                lB.setPower(-power);
+                rF.setPower(-power);
+                rB.setPower(power);
+            }
         }
         stopDrive();
     }
 
+    //archs the robot at a controllable radius. Negative radius turns right positve turns left
     public void arch(double v, double r){
         double rightLeftRatio = (r+LENGTH/2)/(r-LENGTH/2);
             if (rightLeftRatio > 1) {
@@ -483,8 +514,7 @@ public class Mark_6 {
             }
             rightLeftRatio = (r + LENGTH / 2) / (r - LENGTH / 2);
     }
-
-    public void arch(double v, double r, double meters){
+    public void arch(double v, double r, double meters, boolean stop){
         double rightLeftRatio = (r+LENGTH/2)/(r-LENGTH/2);
         double startEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
         double currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
@@ -564,13 +594,7 @@ public class Mark_6 {
         stopDrive();
     }
 
-    public void stopDrive(){
-        lF.setPower(0);
-        lB.setPower(0);
-        rF.setPower(0);
-        rB.setPower(0);
-    }
-
+    //angle strafe allows the robot to move in any direction without turning
     public void angleStrafe(double power, double angle){
         if(this.getStatus() != Mark_5.Status.ANGLE_STRAFING){
             startAngle = getHeading();
@@ -589,11 +613,109 @@ public class Mark_6 {
         rF.setPower(Range.clip(power*Math.sin(angle - Math.PI/4), -(1-turnOffset), (1-turnOffset))-turnOffset);
     }
     public void angleStrafe(double power, double angle, double meters){
-
+        double startEncoderY = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+        double currentEncoderY = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+        double distanceTraveledY = wheelCirc*(currentEncoderY-startEncoderY)/ticksPer;
+        double distanceErrorY = meters*Math.sin(angle)-distanceTraveledY;
+        double startEncoderX = odo.middle.getCurrentPosition();
+        double currentEncoderX = odo.middle.getCurrentPosition();
+        double distanceTraveledX = middleDeadWheelCorrection*wheelCirc*(currentEncoderX-startEncoderX)/ticksPer;
+        double distanceErrorX = meters*Math.cos(angle) - distanceTraveledX;
+        double lowestPower = 0.1;
+        while(Math.abs(Math.hypot(distanceErrorX, distanceErrorY)) > distanceAccuracy){
+            angleStrafe(power, Math.atan2(distanceErrorY, distanceErrorX));
+            currentEncoderX = odo.middle.getCurrentPosition();
+            distanceTraveledX = middleDeadWheelCorrection*wheelCirc*(currentEncoderX-startEncoderX)/ticksPer;
+            distanceErrorX = meters*Math.cos(angle) - distanceTraveledX;
+            currentEncoderY = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
+            distanceTraveledY = wheelCirc*(currentEncoderY-startEncoderY)/ticksPer;
+            distanceErrorY = meters*Math.sin(angle)-distanceTraveledY;
+        }
     }
+
+    //Can turn and strafe at the same time to save time in auto
+    //This is the only function that REQUIRES odometry tracking (all of the functions require deadwheels)
+    public void turningStrafe(double power, double targetHeading, double movementAngle, double meters) {
+        angleStrafe(power, movementAngle - getHeading() + Math.PI / 2);
+        double strafeAngle = movementAngle - getHeading() + Math.PI / 2;
+        double angle = getHeading();
+        double targetAngleDelta;
+        if (ACMath.compassAngleShorter(targetHeading, angle)) {
+            targetAngleDelta = ACMath.toCompassAngle(targetHeading) - ACMath.toCompassAngle(angle);
+        } else {
+            targetAngleDelta = ACMath.toStandardAngle(targetHeading) - ACMath.toStandardAngle(angle);
+        }
+        double targetAngleAbs = Math.abs(targetAngleDelta);
+        boolean sw = false;
+        if (targetAngleDelta > 0)
+            sw = true;
+        if (targetAngleDelta < 0)
+            sw = false;
+        int decreaseRate = 1;
+        double targetX = meters*Math.cos(movementAngle)+odo.getX();
+        double targetY = meters*Math.sin(movementAngle)+odo.getY();
+        double deltaX = targetX-odo.getX();
+        double deltaY = targetY-odo.getY();
+        while (targetAngleAbs >= angleAccuracy && Math.abs(Math.hypot(deltaX, deltaY)) > distanceAccuracy) {
+            deltaX = targetX-odo.getX();
+            deltaY = targetY-odo.getY();
+            strafeAngle = Math.atan2(deltaY, deltaX) - angle + Math.PI / 2;
+            //If change is negative, robot turns in negative direction
+            if (targetAngleDelta < 0) {
+                //Turn right
+                rF.setPower(-power/(2*decreaseRate) + power*Math.sin(strafeAngle - Math.PI/4)/2);
+                rB.setPower(-power/(2*decreaseRate) + power*Math.sin(strafeAngle + Math.PI/4)/2);
+                lF.setPower(power/(2*decreaseRate) + power*Math.sin(strafeAngle + Math.PI/4)/2);
+                lB.setPower(power/(2*decreaseRate) + power*Math.sin(strafeAngle - Math.PI/4)/2);
+                if (!sw) {
+                    decreaseRate++;
+                }
+                sw = true;
+            }
+            if (targetAngleDelta > 0) {
+                //Turn left
+                lF.setPower(-power/(2*decreaseRate) + power*Math.sin(strafeAngle + Math.PI/4)/2);
+                lB.setPower(-power/(2*decreaseRate) + power*Math.sin(strafeAngle - Math.PI/4)/2);
+                rF.setPower(power/(2*decreaseRate) + power*Math.sin(strafeAngle + Math.PI/4)/2);
+                rB.setPower(power/(2*decreaseRate) + power*Math.sin(strafeAngle - Math.PI/4)/2);
+                if (sw) {
+                    decreaseRate++;
+                }
+                sw = false;
+            }
+            angle = getHeading();
+            if (ACMath.compassAngleShorter(targetHeading, angle)) {
+                targetAngleDelta = ACMath.toCompassAngle(targetHeading) - ACMath.toCompassAngle(angle);
+            } else {
+                targetAngleDelta = ACMath.toStandardAngle(targetHeading) - ACMath.toStandardAngle(angle);
+            }
+            targetAngleAbs = Math.abs(targetAngleDelta);
+            if (ln.isStopRequested()) return;
+            ln.telemetry.addData("targetAngleDelta", targetAngleDelta);
+            ln.telemetry.addData("odometryAngle", angle);
+            ln.telemetry.addData("targetAngle", targetHeading);
+            ln.telemetry.addData("Odo X", odo.getX());
+            ln.telemetry.addData("Odo Y", odo.getY());
+            ln.telemetry.addData("Delta X", deltaX);
+            ln.telemetry.addData("Delta Y", deltaY);
+            ln.telemetry.update();
+        }
+    }
+
+    public void stopDrive(){
+        lF.setPower(0);
+        lB.setPower(0);
+        rF.setPower(0);
+        rB.setPower(0);
+    }
+
     public void goToDeltaPosition(double power, double meters, double targetAngle){
         turn(power, targetAngle);
-        forward(power, meters);
+        forward(power, meters, true);
+    }
+    public void goToDeltaPosition(double power, double meters, double targetAngle, boolean stop){
+        turn(power, targetAngle);
+        forward(power, meters, stop);
     }
     public void goToDeltaCurvePosition(double v, double x, double y){
         double angleBetween;
@@ -605,26 +727,56 @@ public class Mark_6 {
         }
         double radius;
         if(angleBetween > 0){
-            radius = Math.hypot(x, y)*Math.sin(Math.PI/2-angleBetween)/Math.sin(Math.PI-2*(Math.PI/2-angleBetween));
+            radius = Math.hypot(x, y)*Math.sin(Math.PI/2-angleBetween)/Math.sin(2*angleBetween);
             if(Math.abs(angleBetween) > Math.PI/2) {
-                arch(v, radius, -ACMath.chordToArch(Math.hypot(x, y), Math.PI - 2*(Math.PI/2 - angleBetween)));
+                arch(v, radius, -ACMath.chordToArch(Math.hypot(x, y), 2*angleBetween), true);
             }else{
-                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI - 2*(Math.PI/2 - angleBetween)));
+                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), 2*angleBetween), true);
             }
         }else if(angleBetween < 0){
-            radius = Math.hypot(x, y)*Math.sin(-Math.PI/2-angleBetween)/Math.sin(Math.PI-2*(-Math.PI/2-angleBetween));
+            radius = Math.hypot(x, y)*Math.sin(-Math.PI/2-angleBetween)/Math.sin(Math.PI-2*(Math.PI/2-angleBetween));
             if(Math.abs(angleBetween) > Math.PI/2) {
-                arch(v, radius, -ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(-Math.PI/2-angleBetween)));
+                arch(v, radius, -ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(Math.PI/2-angleBetween)), true);
             }else{
-                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(-Math.PI/2-angleBetween)));
+                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(Math.PI/2-angleBetween)), true);
             }
         }else if(angleBetween == Math.PI){
-            forward(v, -Math.hypot(x, y));
+            forward(v, -Math.hypot(x, y), true);
         }else{
-            forward(v, Math.hypot(x, y));
+            forward(v, Math.hypot(x, y), true);
         }
     }
-    public void goToAbsolutePosition(double power, double x, double y)throws InterruptedException{
+    public void goToDeltaCurvePosition(double v, double x, double y, boolean stop){
+        double angleBetween;
+        double heading = getHeading();
+        if(ACMath.compassAngleShorter(Math.atan2(y, x), heading)) {
+            angleBetween = ACMath.toCompassAngle(Math.atan2(y, x)) - ACMath.toCompassAngle(heading);
+        }else{
+            angleBetween = ACMath.toStandardAngle(Math.atan2(y, x)) - ACMath.toStandardAngle(heading);
+        }
+        double radius;
+        if(angleBetween > 0){
+            radius = Math.hypot(x, y)*Math.sin(Math.PI/2-angleBetween)/Math.sin(2*angleBetween);
+            if(Math.abs(angleBetween) > Math.PI/2) {
+                arch(v, radius, -ACMath.chordToArch(Math.hypot(x, y), 2*angleBetween), stop);
+            }else{
+                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), 2*angleBetween), stop);
+            }
+        }else if(angleBetween < 0){
+            radius = Math.hypot(x, y)*Math.sin(-Math.PI/2-angleBetween)/Math.sin(Math.PI-2*(Math.PI/2-angleBetween));
+            if(Math.abs(angleBetween) > Math.PI/2) {
+                arch(v, radius, -ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(Math.PI/2-angleBetween)), stop);
+            }else{
+                arch(v, radius, ACMath.chordToArch(Math.hypot(x, y), Math.PI-2*(Math.PI/2-angleBetween)), stop);
+            }
+        }else if(angleBetween == Math.PI){
+            forward(v, -Math.hypot(x, y), true);
+        }else{
+            forward(v, Math.hypot(x, y), true);
+        }
+    }
+
+    public void goToAbsolutePosition(double power, double x, double y){
         double deltaX = x-odo.getX();
         double deltaY = y-odo.getY();
         double angle = Math.atan2(deltaY, deltaX);
@@ -632,9 +784,29 @@ public class Mark_6 {
         ln.telemetry.addData("targetAngle:", angle);
         ln.telemetry.addData("Distance:", distance);
         ln.telemetry.update();
-        Thread.sleep(5000);
         goToDeltaPosition(distance, angle, power);
     }
+    public void goToAbsolutePosition(double power, double x, double y, boolean stop){
+        double deltaX = x-odo.getX();
+        double deltaY = y-odo.getY();
+        double angle = Math.atan2(deltaY, deltaX);
+        double distance = Math.hypot(deltaY, deltaX);
+        ln.telemetry.addData("targetAngle:", angle);
+        ln.telemetry.addData("Distance:", distance);
+        ln.telemetry.update();
+        goToDeltaPosition(distance, angle, power, stop);
+    }
+    public void goToAbsoluteCurvePosition(double power, double x, double y){
+        double deltaX = x-odo.getX();
+        double deltaY = y-odo.getY();
+        goToDeltaCurvePosition(power, deltaX, deltaY);
+    }
+    public void goToAbsoluteCurvePosition(double power, double x, double y, boolean stop){
+        double deltaX = x-odo.getX();
+        double deltaY = y-odo.getY();
+        goToDeltaCurvePosition(power, deltaX, deltaY, stop);
+    }
+
     //Misc methods
     public double getHeading(){
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);

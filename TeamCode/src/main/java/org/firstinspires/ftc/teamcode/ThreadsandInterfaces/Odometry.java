@@ -8,6 +8,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.Hardware.DeadWheel;
 import org.firstinspires.ftc.teamcode.Hardware.Mark_6;
 
+import com.qualcomm.robotcore.util.ReadWriteFile;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
+import java.io.File;
+
 public class Odometry extends Thread{
     //wheelDiameter in centimeters.
     double wheelDiameter;
@@ -23,6 +29,8 @@ public class Odometry extends Thread{
     //offset numbers
     double xOffset = 0.05;
     double yOffset = 0.075;
+    final double middleDeadWheelCorrection = 66.17647058823529;
+    double naturalMiddleMovementPerRadian = 0.082572;
 
     public double odometryX;
     public double odometryY;
@@ -37,7 +45,7 @@ public class Odometry extends Thread{
     public DeadWheel middle;
 
     LinearOpMode ln;
-    public Odometry(LinearOpMode linear, DeadWheel l, DeadWheel r, DeadWheel m, double wheelDiameter, double ticksPerMotorRev, double motorGearRatio, double LENGTH, double initialX, double initialY, double initialAngle, int lDirection, int rDirection, int mDirection){
+    public Odometry(LinearOpMode linear, DeadWheel l, DeadWheel r, DeadWheel m, double wheelDiameter, double ticksPerMotorRev, double motorGearRatio, double LENGTH, double naturalMiddleMovementPerRadian, double initialX, double initialY, double initialAngle, int lDirection, int rDirection, int mDirection){
         ln = linear;
         left = l;
         right = r;
@@ -48,6 +56,7 @@ public class Odometry extends Thread{
         this.motorGearRatio = motorGearRatio;
         this.ticksPer = motorGearRatio*ticksPerMotorRev;
         this.LENGTH = LENGTH;
+        this.naturalMiddleMovementPerRadian = naturalMiddleMovementPerRadian;
         odometryX = initialX;
         odometryY = initialY;
         odometryAngle = initialAngle;
@@ -102,12 +111,12 @@ public class Odometry extends Thread{
             double dM = (dL + dR) / 2;
             double dAngle = (dR - dL) / LENGTH;
             //Middle dead wheel is broken so we added a correction feature (scale factor) test
-            double dMiddle = 66.17647058823529*wheelCircum * deltaTickMiddle / ticksPer;
+            double dMiddle = middleDeadWheelCorrection*wheelCircum * deltaTickMiddle / ticksPer;
             //measure of how much the middle wheel is different then the expected distance of a regular arch
             double dMidChange;
             if(dAngle != 0) {
                 //constant is the middle to angle ratio found in the calibration program
-                dMidChange = dMiddle - dAngle*0.082572;
+                dMidChange = dMiddle - dAngle*naturalMiddleMovementPerRadian;
             }else{
                 dMidChange = dMiddle;
             }
