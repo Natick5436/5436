@@ -49,6 +49,7 @@ public class Mark_6 {
     //ticks per full revolution of the wheel
     final double ticksPer = motorGearRatio*ticksPerMotorRev;
     double LENGTH = 0.38121;
+    double naturalMiddleMovementPerRadian = 0.082572;
 
     public static final double middleDeadWheelCorrection = 66.17647058823529;
 
@@ -92,9 +93,11 @@ public class Mark_6 {
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //***Odometry init***
-        LENGTH = Double.parseDouble(ReadWriteFile.readFile(wheelBaseSeparationFile).trim());
-        double naturalMiddleMovementPerRadians = Double.parseDouble(ReadWriteFile.readFile(horizontalTickOffsetFile).trim());
-        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, naturalMiddleMovementPerRadians, startX, startY, startAngle, -1, 1, -1);
+        if(!teleOpInit) {
+            this.LENGTH = Double.parseDouble(ReadWriteFile.readFile(wheelBaseSeparationFile).trim());
+            this.naturalMiddleMovementPerRadian = Double.parseDouble(ReadWriteFile.readFile(horizontalTickOffsetFile).trim());
+        }
+        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, naturalMiddleMovementPerRadian, startX, startY, startAngle, -1, 1, -1);
         initialAngle = startAngle;
 
         //***IMU init***

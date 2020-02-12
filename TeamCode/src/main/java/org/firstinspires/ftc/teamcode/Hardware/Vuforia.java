@@ -208,9 +208,9 @@ public class Vuforia extends Thread {
 
         // Next, translate the camera lens to where it is on the robot.
         // In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
-        final float CAMERA_FORWARD_DISPLACEMENT  = 0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT     = 0;     // eg: Camera is ON the robot's center line
+        final float CAMERA_FORWARD_DISPLACEMENT  = 6f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
+        final float CAMERA_VERTICAL_DISPLACEMENT = 5f * mmPerInch;   // eg: Camera is 8 Inches above ground
+        final float CAMERA_LEFT_DISPLACEMENT     = 4;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix robotFromCamera = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
@@ -236,8 +236,8 @@ public class Vuforia extends Thread {
             }else{
                 setZoom("35");
             }
-            ln.telemetry.addData("posP", getSkystonePosition());
-            ln.telemetry.update();
+           // ln.telemetry.addData("posP", getSkystonePosition());
+           // ln.telemetry.update();
             //X = -347, 107, 124
             //X = -355,109, 180
         }
@@ -291,13 +291,11 @@ public class Vuforia extends Thread {
             skystonePosition = lastLocation.getTranslation();
             /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                     translation.get(0), translation.get(1), translation.get(2));*/
-            ln.telemetry.addData("x-position",translation.get(0));
-            if(translation.get(0) < 100){
-                pos = 3;
-            }else if (translation.get(0)> 100){
+            ln.telemetry.addData("y-position",translation.get(1));
+            if(translation.get(1) < 0){
                 pos = 2;
-            }else{
-                pos = 1;
+            }else if (translation.get(1)> 20){
+                pos = 3;
             }
             ln.telemetry.addData("pos",pos);
 
@@ -309,6 +307,7 @@ public class Vuforia extends Thread {
         else {
             ln.telemetry.addData("Visible Target", "none");
         }
+        ln.telemetry.update();
     }
     public boolean isSkystone(){
         updateVuforia();

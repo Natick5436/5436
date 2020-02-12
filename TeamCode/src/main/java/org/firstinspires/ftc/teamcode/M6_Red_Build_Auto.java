@@ -26,17 +26,17 @@ public class M6_Red_Build_Auto  extends LinearOpMode {
         boolean active = false;
         while(!isStarted() && !isStopRequested()){
             if(gamepad1.dpad_up && !active){
-                if(itemSelected >= settingNames.length-1){
-                    itemSelected = 0;
-                }else{
-                    itemSelected++;
-                }
-                active = true;
-            }else if(gamepad1.dpad_down && !active){
                 if(itemSelected <= 0){
                     itemSelected = settingNames.length-1;
                 }else{
                     itemSelected--;
+                }
+                active = true;
+            }else if(gamepad1.dpad_down && !active){
+                if(itemSelected >= settingNames.length-1){
+                    itemSelected = 0;
+                }else{
+                    itemSelected++;
                 }
                 active = true;
             }else if((gamepad1.dpad_left|| gamepad1.dpad_right)&& !active){
