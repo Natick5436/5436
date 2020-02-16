@@ -93,10 +93,10 @@ public class Mark_6 {
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //***Odometry init***
-        if(!teleOpInit) {
+        /*if(!teleOpInit) {
             this.LENGTH = Double.parseDouble(ReadWriteFile.readFile(wheelBaseSeparationFile).trim());
             this.naturalMiddleMovementPerRadian = Double.parseDouble(ReadWriteFile.readFile(horizontalTickOffsetFile).trim());
-        }
+        }*/
         odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, naturalMiddleMovementPerRadian, startX, startY, startAngle, -1, 1, -1);
         initialAngle = startAngle;
 

@@ -296,6 +296,8 @@ public class Vuforia extends Thread {
                 pos = 2;
             }else if (translation.get(1)> 20){
                 pos = 3;
+            }else{
+                pos = 1;
             }
             ln.telemetry.addData("pos",pos);
 
@@ -306,6 +308,8 @@ public class Vuforia extends Thread {
         }
         else {
             ln.telemetry.addData("Visible Target", "none");
+            pos = 1;
+            ln.telemetry.addData("pos",pos);
         }
         ln.telemetry.update();
     }
