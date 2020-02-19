@@ -17,7 +17,7 @@ public class M6_TeleOp extends LinearOpMode {
     boolean yDown;
     @Override
     public void runOpMode()throws InterruptedException{
-        robot.initialize(hardwareMap, 0, 0, 0,true);
+        robot.initialize(hardwareMap, 0, 0, 0,false);
         drivePower = 0.5;
         fastMode = false;
         yDown = false;
@@ -56,6 +56,9 @@ public class M6_TeleOp extends LinearOpMode {
                 telemetry.addData("You are in Slow mode", "(click both stick buttons to engage fast mode)");
             }
             telemetry.addData("Velocities", "left: "+robot.odo.getVelocityL()+"    right: "+robot.odo.getVelocityR());
+            telemetry.addData("left dead wheel:", robot.odo.left.getCurrentPosition());
+            telemetry.addData("right dead wheel: ", robot.odo.right.getCurrentPosition());
+            telemetry.addData("middle dead wheel: ", robot.odo.middle.getCurrentPosition());
             telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
             telemetry.addData("Heading", robot.getHeading());
             telemetry.update();

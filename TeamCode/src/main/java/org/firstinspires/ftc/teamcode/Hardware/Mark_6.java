@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchDevice;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
@@ -34,22 +35,23 @@ public class Mark_6 {
         return robotStatus;
     }
 
-    public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift;
+    public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift, misc;
+    public Servo foundation, skyClamp, skyArm, extension, extRotate, outClamp;
 
     BNO055IMU imu;
     Orientation angles;
 
     //wheel Diameter in cm
-    final double wheelDiameter = 5.08;
+    public static final double wheelDiameter = 5.08;
     //wheel Circumference in meters
-    final double wheelCirc = wheelDiameter * Math.PI/100;
+    public static final double wheelCirc = wheelDiameter * Math.PI/100;
     //ticks per full revolution of the motor axle
-    final double ticksPerMotorRev = 8192;
-    final double motorGearRatio = 1;
+    public static final double ticksPerMotorRev = 8192;
+    public static final double motorGearRatio = 1;
     //ticks per full revolution of the wheel
-    final double ticksPer = motorGearRatio*ticksPerMotorRev;
-    double LENGTH = 0.38121;
-    double naturalMiddleMovementPerRadian = 0.082572;
+    public static final double ticksPer = motorGearRatio*ticksPerMotorRev;
+    public double LENGTH = 0.3806403045315965;
+    public double naturalMiddleMovementPerRadian = 0.025564584454830182;
 
     public static final double middleDeadWheelCorrection = 66.17647058823529;
 
@@ -72,7 +74,17 @@ public class Mark_6 {
         lB = hardwareMap.dcMotor.get("lB");
         rF = hardwareMap.dcMotor.get("rF");
         rB = hardwareMap.dcMotor.get("rB");
+        intakeR = hardwareMap.dcMotor.get("rightIntake");
+        intakeL = hardwareMap.dcMotor.get("leftIntake");
+        lift = hardwareMap.dcMotor.get("lift");
+        misc = hardwareMap.dcMotor.get("misc");
 
+        foundation = hardwareMap.servo.get("foundation");
+        skyClamp = hardwareMap.servo.get("skyClamp");
+        skyArm = hardwareMap.servo.get("skyArm");
+        extension = hardwareMap.servo.get("extension");
+        extRotate = hardwareMap.servo.get("extRotate");
+        outClamp = hardwareMap.servo.get("outClamp");
 
         lF.setDirection(DcMotorSimple.Direction.REVERSE);
         lB.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -81,24 +93,39 @@ public class Mark_6 {
         lB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rB .setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intakeR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intakeL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        misc.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         lF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intakeR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intakeL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        misc.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         lF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        misc.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         //***Odometry init***
-        /*if(!teleOpInit) {
+        if(!teleOpInit) {
             this.LENGTH = Double.parseDouble(ReadWriteFile.readFile(wheelBaseSeparationFile).trim());
             this.naturalMiddleMovementPerRadian = Double.parseDouble(ReadWriteFile.readFile(horizontalTickOffsetFile).trim());
-        }*/
-        odo = new Odometry(ln, new DeadWheel(lB), new DeadWheel(rF), new DeadWheel(lF), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, naturalMiddleMovementPerRadian, startX, startY, startAngle, -1, 1, -1);
+        }
+        odo = new Odometry(ln, new DeadWheel(misc), new DeadWheel(intakeR), new DeadWheel(intakeL), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, naturalMiddleMovementPerRadian, startX, startY, startAngle, -1, 1, -1);
         initialAngle = startAngle;
+        ln.telemetry.addData("LENGTH", LENGTH);
+        ln.telemetry.addData("naturalMiddle", this.naturalMiddleMovementPerRadian);
 
         //***IMU init***
         BNO055IMU.Parameters imuParameters = new BNO055IMU.Parameters();
@@ -195,7 +222,7 @@ public class Mark_6 {
         double currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
         double distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
         double distanceError = meters-distanceTraveled;
-        double lowestPower = 0.1;
+        double lowestPower = 0.2;
         if(distanceError > 0){
             while(distanceError > 0){
                 double newPower = power*(Range.clip(distanceError/meters+lowestPower, -(1-turnOffset), (1-turnOffset)));
@@ -222,6 +249,9 @@ public class Mark_6 {
                 currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
                 distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
                 distanceError = meters-distanceTraveled;
+                if(ln.isStopRequested())return;
+                ln.telemetry.addData("In Loop", distanceError);
+                ln.telemetry.update();
             }
             if(stop) {
                 lF.setPower(-power);
@@ -255,6 +285,9 @@ public class Mark_6 {
                 currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
                 distanceTraveled = wheelCirc*(currentEncoder-startEncoder)/ticksPer;
                 distanceError = meters-distanceTraveled;
+                if(ln.isStopRequested())return;
+                ln.telemetry.addData("In Loop", distanceError);
+                ln.telemetry.update();
                 }
             if(stop) {
                 lF.setPower(power);
@@ -274,6 +307,7 @@ public class Mark_6 {
         lB.setPower(-power);
     }
     public void turn(double power, double targetAngle){
+        this.setStatus(Mark_5.Status.TURNING);
         double angle = getHeading();
         double targetAngleDelta;
         boolean useCompassAngle = ACMath.compassAngleShorter(targetAngle, angle);
@@ -421,7 +455,7 @@ public class Mark_6 {
         double currentEncoder = odo.middle.getCurrentPosition();
         double distanceTraveled = middleDeadWheelCorrection*wheelCirc*(currentEncoder-startEncoder)/ticksPer;
         double distanceError = meters-distanceTraveled;
-        double lowestPower = 0.1;
+        double lowestPower = 0.2;
         if(distanceError > 0){
         while(distanceError>0){
             if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
@@ -446,7 +480,7 @@ public class Mark_6 {
                 turn(0.5, startAngle);
             }
             currentEncoder = odo.middle.getCurrentPosition();
-            distanceTraveled = 66.17647058823529*0.0508*Math.PI*(currentEncoder-startEncoder)/8192;
+            distanceTraveled = middleDeadWheelCorrection*wheelCirc*(currentEncoder-startEncoder)/ticksPer;
             distanceError = meters-distanceTraveled;
             ln.telemetry.addData("Distance error", distanceError);
             ln.telemetry.addData("angle error", angleError);
@@ -504,6 +538,7 @@ public class Mark_6 {
 
     //archs the robot at a controllable radius. Negative radius turns right positve turns left
     public void arch(double v, double r){
+        this.setStatus(Mark_5.Status.ARCHING);
         double rightLeftRatio = (r+LENGTH/2)/(r-LENGTH/2);
             if (rightLeftRatio > 1) {
                 updatePDVelocityR(v);
@@ -518,6 +553,7 @@ public class Mark_6 {
             rightLeftRatio = (r + LENGTH / 2) / (r - LENGTH / 2);
     }
     public void arch(double v, double r, double meters, boolean stop){
+        this.setStatus(Mark_5.Status.ARCHING);
         double rightLeftRatio = (r+LENGTH/2)/(r-LENGTH/2);
         double startEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
         double currentEncoder = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;

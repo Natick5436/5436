@@ -20,7 +20,7 @@ public class M6_Red_Build_Auto  extends LinearOpMode {
         t1.start();
         robot.initialize(hardwareMap, SKYSTONE.FIELD_WIDTH-SKYSTONE.ROBOT_WIDTH/2, SKYSTONE.FIELD_WIDTH - (SKYSTONE.WALL_TO_FOUNDATION + SKYSTONE.FOUNDATION_LENGTH/2), Math.PI, false);
 
-        int itemSelected = 0;
+      /*  int itemSelected = 0;
         String[] settingNames = {"Move foundation(true = yes, false = no): ", "Park skybridge side(true) or wall side (false): ", "Travel wall side: ", "Help Skystone: ", "Help first on close side(true) or on far side (false): "};
         boolean[] settings = new boolean[settingNames.length];
         boolean active = false;
@@ -56,9 +56,13 @@ public class M6_Red_Build_Auto  extends LinearOpMode {
                 }
             }
             telemetry.update();
-        }
+        }*/
         robot.odo.start();
         runtime.reset();
-
+        waitForStart();
+        robot.strafe(1, 0.5, true);
+        robot.forward(1, 1, true);
+        robot.strafe(1, -0.5, true);
+        robot.forward(1, -1, true);
     }
 }

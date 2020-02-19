@@ -35,7 +35,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class Mark_5 {
-    public enum Status {STRAFING, FORWARD, DRIVING, TURNING, ANGLE_STRAFING, INITIALIZING, INITIALIZED, PREINIT}
+    public enum Status {STRAFING, FORWARD, ARCHING, DRIVING, TURNING, ANGLE_STRAFING, INITIALIZING, INITIALIZED, PREINIT}
     private Status robotStatus;
     public void setStatus(Status s){
         robotStatus = s;

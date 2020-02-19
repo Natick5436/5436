@@ -30,19 +30,28 @@ public class M6_Autonomous extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         Vuforia t1 = new Vuforia(this, hardwareMap);
         t1.start();
-        robot.initialize(hardwareMap, 0, 0, 0, false);
+        robot.initialize(hardwareMap, 0, 0, 0, true);
         runtime.reset();
         waitForStart();
-        robot.turn(0.5, Math.PI/2);
-        ReadWriteFile.writeFile(wheelBaseSeparationFile, String.valueOf(((0.0508*Math.PI*robot.lB.getCurrentPosition()/8192) + (0.0508*Math.PI*robot.rF.getCurrentPosition()/8192))/robot.getHeading()));
-        ReadWriteFile.writeFile(horizontalTickOffsetFile, String.valueOf(-(robot.middleDeadWheelCorrection*0.0508*Math.PI*robot.lF.getCurrentPosition()/8192)/robot.getHeading()));
+        robot.odo.start();
+        double startTime = System.currentTimeMillis();
+        double currentTime = System.currentTimeMillis();
+        while(Math.abs(currentTime-startTime) < 1000 && opModeIsActive()){
+            robot.updatePDVelocityL(-0.5);
+            robot.updatePDVelocityR(0.5);
+            currentTime = System.currentTimeMillis();
+        }
+        robot.stopDrive();
+        Thread.sleep(1000);
+        ReadWriteFile.writeFile(wheelBaseSeparationFile, String.valueOf(((robot.wheelCirc*robot.odo.right.getCurrentPosition()/robot.ticksPer) - (robot.wheelCirc*robot.odo.left.getCurrentPosition()/robot.ticksPer))/robot.getHeading()));
+        ReadWriteFile.writeFile(horizontalTickOffsetFile, String.valueOf((robot.middleDeadWheelCorrection*robot.wheelCirc*robot.odo.middle.getCurrentPosition()/robot.ticksPer)/robot.getHeading()));
         while(opModeIsActive()){
-            telemetry.addData("Left deadwheel", -5.08*Math.PI*robot.lB.getCurrentPosition()/8192);
-            telemetry.addData("right deadwheel", 5.08*Math.PI*robot.rF.getCurrentPosition()/8192);
-            telemetry.addData("Middle  deadwheel", -66.17647058823529*5.08*Math.PI*robot.lF.getCurrentPosition()/8192);
-            telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
-            telemetry.addData("Length: ", ((0.0508*Math.PI*robot.lB.getCurrentPosition()/8192) + (0.0508*Math.PI*robot.rF.getCurrentPosition()/8192))/robot.getHeading());
-            telemetry.addData("Middle to angle ratio: ", -(66.17647058823529*0.0508*Math.PI*robot.lF.getCurrentPosition()/8192)/robot.getHeading());
+            telemetry.addData("Left deadwheel", robot.wheelCirc*robot.odo.left.getCurrentPosition()/robot.ticksPer);
+            telemetry.addData("right deadwheel", robot.wheelCirc*robot.odo.right.getCurrentPosition()/robot.ticksPer);
+            telemetry.addData("Middle  deadwheel", robot.middleDeadWheelCorrection*robot.wheelCirc*robot.odo.middle.getCurrentPosition()/robot.ticksPer);
+            telemetry.addData("Length: ", ((robot.wheelCirc*robot.odo.right.getCurrentPosition()/robot.ticksPer) - (robot.wheelCirc*robot.odo.left.getCurrentPosition()/robot.ticksPer))/robot.getHeading());
+            telemetry.addData("Middle to angle ratio: ", (robot.middleDeadWheelCorrection*robot.wheelCirc*robot.odo.middle.getCurrentPosition()/robot.ticksPer)/robot.getHeading());
+            telemetry.addData("Heading",robot.getHeading());
             telemetry.update();
         }
     }
