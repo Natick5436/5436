@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Hardware;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -36,7 +37,20 @@ public class Mark_6 {
     }
 
     public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift, misc;
-    public Servo foundation, skyClamp, skyArm, extension, extRotate, outClamp;
+    public Servo foundation, skyClamp, skyArm, extRotate, outClamp;
+    public CRServo extension;
+
+    public double SKYCLAMP_CLOSE = 0.5;
+    public double SKYCLAMP_OPEN = 0.9;
+    public double FOUNDATION_CLOSE = 1.0;
+    public double FOUNDATION_OPEN = 0.7;
+    public double SKYARM_DOWN = 0.45;
+    public double SKYARM_UP = 0.85;
+    public double ROTATE_OUT = 0.9;
+    public double ROTATE_MID = 0.625;
+    public double ROTATE_IN = 0.35;
+    public double OUT_GRAB = 0.5;
+    public double OUT_RELEASE = 0;
 
     BNO055IMU imu;
     Orientation angles;
@@ -61,7 +75,7 @@ public class Mark_6 {
     public Odometry odo;
     double initialAngle;
 
-    final double angleAccuracy = 0.01;
+    final double angleAccuracy = 0.005;
     final double distanceAccuracy = 0.01;
 
     LinearOpMode ln;
@@ -82,12 +96,13 @@ public class Mark_6 {
         foundation = hardwareMap.servo.get("foundation");
         skyClamp = hardwareMap.servo.get("skyClamp");
         skyArm = hardwareMap.servo.get("skyArm");
-        extension = hardwareMap.servo.get("extension");
+        extension = hardwareMap.crservo.get("extension");
         extRotate = hardwareMap.servo.get("extRotate");
         outClamp = hardwareMap.servo.get("outClamp");
 
         lF.setDirection(DcMotorSimple.Direction.REVERSE);
         lB.setDirection(DcMotorSimple.Direction.REVERSE);
+        intakeL.setDirection(DcMotorSimple.Direction.REVERSE);
 
         lF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -115,6 +130,13 @@ public class Mark_6 {
         intakeL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         misc.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        skyArm.setPosition(0.3);
+        skyClamp.setPosition(0.9);
+        foundation.setPosition(FOUNDATION_OPEN);
+        extension.setPower(0);
+        extRotate.setPosition(ROTATE_IN);
+        outClamp.setPosition(OUT_RELEASE);
 
 
         //***Odometry init***
@@ -367,6 +389,7 @@ public class Mark_6 {
         lB.setPower(0);
     }
     public void turn(double power, double targetAngle, boolean override){
+        this.setStatus(Mark_5.Status.TURNING);
         double angle = getHeading();
         double targetAngleDelta;
         if(override) {
@@ -404,6 +427,118 @@ public class Mark_6 {
             }
             angle = getHeading();
             if(override) {
+                targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+            }else{
+                targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+            }
+            targetAngleAbs = Math.abs(targetAngleDelta);
+            if(ln.isStopRequested())return;
+            ln.telemetry.addData("targetAngleDelta", targetAngleDelta);
+            ln.telemetry.addData("odometryAngle", angle);
+            ln.telemetry.addData("targetAngle", targetAngle);
+            ln.telemetry.addData("abs",targetAngleAbs);
+            ln.telemetry.update();
+        }
+        rF.setPower(0);
+        rB.setPower(0);
+        lF.setPower(0);
+        lB.setPower(0);
+    }
+    public void odometryTurn(double power, double targetAngle, boolean override){
+        this.setStatus(Mark_5.Status.TURNING);
+        double angle = odo.getAngle();
+        double targetAngleDelta;
+        if(override) {
+            targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+        }else{
+            targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+        }
+        double targetAngleAbs = Math.abs(targetAngleDelta);
+        boolean sw = false;
+        if (targetAngleDelta > 0)
+            sw = true;
+        if (targetAngleDelta < 0)
+            sw = false;
+        int decreaseRate = 0;
+        while (targetAngleAbs >= angleAccuracy){
+            if (targetAngleDelta < 0){
+                rF.setPower(-power / decreaseRate);
+                rB.setPower(-power / decreaseRate);
+                lF.setPower(power / decreaseRate);
+                lB.setPower(power / decreaseRate);
+                if(!sw){
+                    decreaseRate++;
+                }
+                sw = true;
+            }
+            if (targetAngleDelta > 0){
+                lF.setPower(-power /  decreaseRate);
+                lB.setPower(-power /  decreaseRate);
+                rF.setPower(power / decreaseRate);
+                rB.setPower(power / decreaseRate);
+                if(sw){
+                    decreaseRate++;
+                }
+                sw = false;
+            }
+            angle = odo.getAngle();
+            if(override) {
+                targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+            }else{
+                targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+            }
+            targetAngleAbs = Math.abs(targetAngleDelta);
+            if(ln.isStopRequested())return;
+            ln.telemetry.addData("targetAngleDelta", targetAngleDelta);
+            ln.telemetry.addData("odometryAngle", angle);
+            ln.telemetry.addData("targetAngle", targetAngle);
+            ln.telemetry.addData("abs",targetAngleAbs);
+            ln.telemetry.update();
+        }
+        rF.setPower(0);
+        rB.setPower(0);
+        lF.setPower(0);
+        lB.setPower(0);
+    }
+    public void odometryTurn(double power, double targetAngle){
+        this.setStatus(Mark_5.Status.TURNING);
+        double angle = odo.getAngle();
+        double targetAngleDelta;
+        if(ACMath.compassAngleShorter(targetAngle, angle)) {
+            targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+        }else{
+            targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+        }
+        double targetAngleAbs = Math.abs(targetAngleDelta);
+        boolean sw = false;
+        if (targetAngleDelta > 0)
+            sw = true;
+        if (targetAngleDelta < 0)
+            sw = false;
+        int decreaseRate = 0;
+        while (targetAngleAbs >= angleAccuracy){
+            if (targetAngleDelta < 0){
+                rF.setPower(-power / decreaseRate);
+                rB.setPower(-power / decreaseRate);
+                lF.setPower(power / decreaseRate);
+                lB.setPower(power / decreaseRate);
+                if(!sw){
+                    decreaseRate++;
+                }
+                sw = true;
+            }
+            if (targetAngleDelta > 0){
+                lF.setPower(-power /  decreaseRate);
+                lB.setPower(-power /  decreaseRate);
+                rF.setPower(power / decreaseRate);
+                rB.setPower(power / decreaseRate);
+                if(sw){
+                    decreaseRate++;
+                }
+                sw = false;
+            }
+            angle = odo.getAngle();
+            if(ACMath.compassAngleShorter(targetAngle, angle)) {
                 targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
             }else{
                 targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
@@ -655,7 +790,7 @@ public class Mark_6 {
         rB.setPower(Range.clip(power*Math.sin(angle + Math.PI/4), -(1-turnOffset), (1-turnOffset))-turnOffset);
         rF.setPower(Range.clip(power*Math.sin(angle - Math.PI/4), -(1-turnOffset), (1-turnOffset))-turnOffset);
     }
-    public void angleStrafe(double power, double angle, double meters){
+    public void angleStrafe(double power, double angle, double meters, boolean stop){
         double startEncoderY = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
         double currentEncoderY = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
         double distanceTraveledY = wheelCirc*(currentEncoderY-startEncoderY)/ticksPer;
@@ -664,9 +799,9 @@ public class Mark_6 {
         double currentEncoderX = odo.middle.getCurrentPosition();
         double distanceTraveledX = middleDeadWheelCorrection*wheelCirc*(currentEncoderX-startEncoderX)/ticksPer;
         double distanceErrorX = meters*Math.cos(angle) - distanceTraveledX;
-        double lowestPower = 0.1;
+        double lowestPower = 0.2;
         while(Math.abs(Math.hypot(distanceErrorX, distanceErrorY)) > distanceAccuracy){
-            angleStrafe(power, Math.atan2(distanceErrorY, distanceErrorX));
+            angleStrafe(power*(lowestPower+Math.hypot(distanceErrorX, distanceErrorY)/meters), Math.atan2(distanceErrorY, distanceErrorX));
             currentEncoderX = odo.middle.getCurrentPosition();
             distanceTraveledX = middleDeadWheelCorrection*wheelCirc*(currentEncoderX-startEncoderX)/ticksPer;
             distanceErrorX = meters*Math.cos(angle) - distanceTraveledX;
@@ -674,6 +809,13 @@ public class Mark_6 {
             distanceTraveledY = wheelCirc*(currentEncoderY-startEncoderY)/ticksPer;
             distanceErrorY = meters*Math.sin(angle)-distanceTraveledY;
         }
+        if(stop){
+            lF.setPower(-lF.getPower());
+            lB.setPower(-lB.getPower());
+            rF.setPower(-rF.getPower());
+            rB.setPower(-rB.getPower());
+        }
+        stopDrive();
     }
 
     //Can turn and strafe at the same time to save time in auto
@@ -699,6 +841,7 @@ public class Mark_6 {
         double targetY = meters*Math.sin(movementAngle)+odo.getY();
         double deltaX = targetX-odo.getX();
         double deltaY = targetY-odo.getY();
+        double lowestPower = 0.2;
         while (targetAngleAbs >= angleAccuracy && Math.abs(Math.hypot(deltaX, deltaY)) > distanceAccuracy) {
             deltaX = targetX-odo.getX();
             deltaY = targetY-odo.getY();
@@ -706,10 +849,10 @@ public class Mark_6 {
             //If change is negative, robot turns in negative direction
             if (targetAngleDelta < 0) {
                 //Turn right
-                rF.setPower(-power/(2*decreaseRate) + power*Math.sin(strafeAngle - Math.PI/4)/2);
-                rB.setPower(-power/(2*decreaseRate) + power*Math.sin(strafeAngle + Math.PI/4)/2);
-                lF.setPower(power/(2*decreaseRate) + power*Math.sin(strafeAngle + Math.PI/4)/2);
-                lB.setPower(power/(2*decreaseRate) + power*Math.sin(strafeAngle - Math.PI/4)/2);
+                rF.setPower(-0.3*power/(decreaseRate) + 0.7*power*Math.sin(strafeAngle - Math.PI/4)*Range.clip(lowestPower+Math.hypot(deltaX, deltaY)/meters, -1, 1));
+                rB.setPower(-0.3*power/(decreaseRate) + 0.7*power*Math.sin(strafeAngle + Math.PI/4)*Range.clip(lowestPower+Math.hypot(deltaX, deltaY)/meters, -1, 1));
+                lF.setPower(0.3*power/(decreaseRate) + 0.7*power*Math.sin(strafeAngle + Math.PI/4)*Range.clip(lowestPower+Math.hypot(deltaX, deltaY)/meters, -1, 1));
+                lB.setPower(0.3*power/(decreaseRate) + 0.7*power*Math.sin(strafeAngle - Math.PI/4)*Range.clip(lowestPower+Math.hypot(deltaX, deltaY)/meters, -1, 1));
                 if (!sw) {
                     decreaseRate++;
                 }
@@ -717,10 +860,10 @@ public class Mark_6 {
             }
             if (targetAngleDelta > 0) {
                 //Turn left
-                lF.setPower(-power/(2*decreaseRate) + power*Math.sin(strafeAngle + Math.PI/4)/2);
-                lB.setPower(-power/(2*decreaseRate) + power*Math.sin(strafeAngle - Math.PI/4)/2);
-                rF.setPower(power/(2*decreaseRate) + power*Math.sin(strafeAngle + Math.PI/4)/2);
-                rB.setPower(power/(2*decreaseRate) + power*Math.sin(strafeAngle - Math.PI/4)/2);
+                lF.setPower(-0.3*power/(decreaseRate) + 0.7*power*Math.sin(strafeAngle + Math.PI/4)*Range.clip(lowestPower+Math.hypot(deltaX, deltaY)/meters, -1, 1));
+                lB.setPower(-0.3*power/(decreaseRate) + 0.7*power*Math.sin(strafeAngle - Math.PI/4)*Range.clip(lowestPower+Math.hypot(deltaX, deltaY)/meters, -1, 1));
+                rF.setPower(0.3*power/(decreaseRate) + 0.7*power*Math.sin(strafeAngle + Math.PI/4)*Range.clip(lowestPower+Math.hypot(deltaX, deltaY)/meters, -1, 1));
+                rB.setPower(0.3*power/(decreaseRate) + 0.7*power*Math.sin(strafeAngle - Math.PI/4)*Range.clip(lowestPower+Math.hypot(deltaX, deltaY)/meters, -1, 1));
                 if (sw) {
                     decreaseRate++;
                 }
@@ -752,12 +895,12 @@ public class Mark_6 {
         rB.setPower(0);
     }
 
-    public void goToDeltaPosition(double power, double meters, double targetAngle){
-        turn(power, targetAngle);
+    public void goToDeltaPosition(double power, double turnPower, double meters, double targetAngle){
+        odometryTurn(turnPower, targetAngle);
         forward(power, meters, true);
     }
-    public void goToDeltaPosition(double power, double meters, double targetAngle, boolean stop){
-        turn(power, targetAngle);
+    public void goToDeltaPosition(double power, double turnPower, double meters, double targetAngle, boolean stop){
+        odometryTurn(turnPower, targetAngle);
         forward(power, meters, stop);
     }
     public void goToDeltaCurvePosition(double v, double x, double y){
@@ -819,7 +962,7 @@ public class Mark_6 {
         }
     }
 
-    public void goToAbsolutePosition(double power, double x, double y){
+    public void goToAbsolutePosition(double power, double turnPower, double x, double y)throws InterruptedException{
         double deltaX = x-odo.getX();
         double deltaY = y-odo.getY();
         double angle = Math.atan2(deltaY, deltaX);
@@ -827,9 +970,9 @@ public class Mark_6 {
         ln.telemetry.addData("targetAngle:", angle);
         ln.telemetry.addData("Distance:", distance);
         ln.telemetry.update();
-        goToDeltaPosition(distance, angle, power);
+        goToDeltaPosition(power, turnPower, distance, angle);
     }
-    public void goToAbsolutePosition(double power, double x, double y, boolean stop){
+    public void goToAbsolutePosition(double power, double turnPower, double x, double y, boolean stop){
         double deltaX = x-odo.getX();
         double deltaY = y-odo.getY();
         double angle = Math.atan2(deltaY, deltaX);
@@ -837,7 +980,7 @@ public class Mark_6 {
         ln.telemetry.addData("targetAngle:", angle);
         ln.telemetry.addData("Distance:", distance);
         ln.telemetry.update();
-        goToDeltaPosition(distance, angle, power, stop);
+        goToDeltaPosition(power, turnPower, distance, angle, stop);
     }
     public void goToAbsoluteCurvePosition(double power, double x, double y){
         double deltaX = x-odo.getX();

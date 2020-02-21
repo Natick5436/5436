@@ -15,12 +15,20 @@ public class M6_TeleOp extends LinearOpMode {
     double drivePower;
     boolean fastMode;
     boolean yDown;
+    boolean aDown;
+    boolean xDown;
+    boolean sticksDown;
     @Override
     public void runOpMode()throws InterruptedException{
         robot.initialize(hardwareMap, 0, 0, 0,false);
         drivePower = 0.5;
         fastMode = false;
         yDown = false;
+        boolean armClose = true;
+        aDown = false;
+        boolean clampClose = false;
+        boolean foundationClose = false;
+        xDown = false;
 
         waitForStart();
         robot.odo.start();
@@ -43,10 +51,12 @@ public class M6_TeleOp extends LinearOpMode {
                 robot.rB.setPower(-drivePower*gamepad1.right_stick_y);
                 robot.setStatus(Mark_5.Status.DRIVING);
             }
-
             //Fast mode/slow mode swap
-            if(gamepad1.left_stick_button && gamepad1.right_stick_button) {
+            if(gamepad1.left_stick_button && gamepad1.right_stick_button && !sticksDown) {
                 fastMode = !fastMode;
+                sticksDown = true;
+            }else if(!(gamepad1.left_stick_button && gamepad1.right_stick_button)){
+                sticksDown = false;
             }
             if(fastMode){
                 drivePower = 1;
@@ -54,6 +64,64 @@ public class M6_TeleOp extends LinearOpMode {
             }else{
                 drivePower = 0.5;
                 telemetry.addData("You are in Slow mode", "(click both stick buttons to engage fast mode)");
+            }
+
+            //Intake control
+            robot.intakeL.setPower(-gamepad2.left_stick_y);
+            robot.intakeR.setPower(-gamepad2.right_stick_y);
+
+            //Outtake control
+            robot.extension.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
+            if(gamepad2.right_bumper){
+                robot.outClamp.setPosition(robot.OUT_GRAB);
+            }else if(gamepad2.left_bumper){
+                robot.outClamp.setPosition(robot.OUT_RELEASE);
+            }
+            if(gamepad2.dpad_up){
+                robot.extRotate.setPosition(robot.ROTATE_OUT);
+            }else if(gamepad2.dpad_down){
+                robot.extRotate.setPosition(robot.ROTATE_IN);
+            }else if(gamepad2.dpad_right || gamepad2.dpad_left){
+                robot.extRotate.setPosition(robot.ROTATE_MID);
+            }
+
+            //Misc servo manips control
+            if(!yDown && gamepad1.y){
+                armClose = !armClose;
+                yDown= true;
+            }else if(!gamepad1.y){
+                yDown = false;
+            }
+            if(armClose){
+                robot.skyArm.setPosition(robot.SKYARM_DOWN);
+
+            }else{
+                robot.skyArm.setPosition(robot.SKYARM_UP);
+            }
+            if(!aDown && gamepad1.a){
+                clampClose = !clampClose;
+                aDown = true;
+            }else if(!gamepad1.a){
+                aDown = false;
+            }
+            if (clampClose){
+                robot.skyClamp.setPosition(robot.SKYCLAMP_CLOSE);
+            }else {
+                robot.skyClamp.setPosition(robot.SKYCLAMP_OPEN);
+            }
+            if (gamepad1.y){
+                robot.goToAbsolutePosition(1,0.5, 0,0);
+            }
+            if (!xDown && gamepad1.x){
+                foundationClose = !foundationClose;
+                xDown = true;
+            }else if(!gamepad1.x){
+                xDown = false;
+            }
+            if (foundationClose){
+                robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
+            }else{
+                robot.foundation.setPosition(robot.FOUNDATION_OPEN);
             }
             telemetry.addData("Velocities", "left: "+robot.odo.getVelocityL()+"    right: "+robot.odo.getVelocityR());
             telemetry.addData("left dead wheel:", robot.odo.left.getCurrentPosition());

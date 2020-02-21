@@ -70,7 +70,7 @@ import java.io.File;
  */
 
 @TeleOp(name="Concept: Sound Resources", group="Concept")
-@Disabled
+//@Disabled
 public class ConceptSoundsASJava extends LinearOpMode {
 
     // Declare OpMode members.
@@ -108,6 +108,9 @@ public class ConceptSoundsASJava extends LinearOpMode {
         waitForStart();
 
         telemetry.addData(">", "Press X, B to play sounds.");
+        telemetry.update();
+
+        telemetry.addData("volume", SoundPlayer.getInstance().getMasterVolume());
         telemetry.update();
 
         // run until the end of the match (driver presses STOP)

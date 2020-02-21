@@ -34,6 +34,8 @@ public class Vuforia extends Thread {
     //
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
     private static final boolean PHONE_IS_PORTRAIT = false;
+    public boolean exit = false;
+    public boolean zoom = false;
 
 
     /*
@@ -231,13 +233,28 @@ public class Vuforia extends Thread {
         com.vuforia.CameraDevice.getInstance().setField("zoom", "30");
 
         inited = true;
-        while(!ln.isStarted()&&!ln.isStopRequested()){
-            skystoneInit();
+        while(!ln.opModeIsActive() && !ln.isStarted()){
+            updateVuforia();
+        }
+         /*   while(!exit) {
+                skystoneInit();
+                targetsSkyStone.activate();
+            }
+            targetsSkyStone.deactivate();
+            if (!targetVisible){
+                pos = 1;
+            }
+            while (ln.opModeIsActive()) {
+                if (!exit) {
+                    targetsSkyStone.activate();
+                    skystoneInit();
+                }
+            }*/
            // ln.telemetry.addData("posP", getSkystonePosition());
            // ln.telemetry.update();
             //X = -347, 107, 124
             //X = -355,109, 180
-        }
+
 
 
     }
@@ -254,7 +271,10 @@ public class Vuforia extends Thread {
         return inited;
     }
     //Vuforia methods
-    int pos;
+    public int pos;
+    public int getPos(){
+        return pos;
+    }
     public void updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
@@ -289,14 +309,18 @@ public class Vuforia extends Thread {
             /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                     translation.get(0), translation.get(1), translation.get(2));*/
             ln.telemetry.addData("y-position",translation.get(1));
-            if(translation.get(1) < -80 && translation.get(1)> -120){
-                pos = 2;
-            }else if (translation.get(1)> -80){
-                pos = 3;
-            }else if (translation.get(1) < -120){
-                targetVisible = false;
-                pos = 1;
+            if (!ln.opModeIsActive()){
+                if (translation.get(1) < -80 && translation.get(1) > -120) {
+                    pos = 2;
+                }else {
+                    pos = 0;
+                }
             }
+            /*if(translation.get(1) < -100){
+                pos = 2;
+            }else if (translation.get(1)> -100){
+                pos = 3;
+            }*/
             ln.telemetry.addData("pos",pos);
 
             // express the rotation of the robot in degrees.
@@ -308,8 +332,6 @@ public class Vuforia extends Thread {
         else {
             if (!targetVisible) {
                 ln.telemetry.addData("Visible Target", "none");
-                pos = 1;
-                ln.telemetry.addData("pos", pos);
             }
         }
         ln.telemetry.update();
