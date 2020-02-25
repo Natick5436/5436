@@ -18,6 +18,7 @@ public class M6_TeleOp extends LinearOpMode {
     boolean aDown;
     boolean xDown;
     boolean sticksDown;
+    boolean liftLimit = false;
     @Override
     public void runOpMode()throws InterruptedException{
         robot.initialize(hardwareMap, 0, 0, 0,false);
@@ -26,8 +27,8 @@ public class M6_TeleOp extends LinearOpMode {
         yDown = false;
         boolean armClose = true;
         aDown = false;
-        boolean clampClose = false;
-        boolean foundationClose = false;
+        boolean clampClose = true;
+        boolean foundationClose = true;
         xDown = false;
 
         waitForStart();
@@ -67,23 +68,42 @@ public class M6_TeleOp extends LinearOpMode {
             }
 
             //Intake control
-            robot.intakeL.setPower(-gamepad2.left_stick_y);
-            robot.intakeR.setPower(-gamepad2.right_stick_y);
+            robot.intakeL.setPower(gamepad2.left_stick_y);
+            robot.intakeR.setPower(gamepad2.right_stick_y);
 
-            //Outtake control
-            robot.extension.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
+            if (robot.lift.getCurrentPosition() > 0 && robot.lift.getCurrentPosition() < 400) {
+                liftLimit = false;
+                robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+            }else{
+                liftLimit = true;
+                robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+                /*robot.lift.setPower(0);
+                if (robot.lift.getCurrentPosition() <= 0){
+                    robot.lift.setPower(gamepad2.right_trigger);
+                }else if (robot.lift.getCurrentPosition() >= 400){
+                    robot.lift.setPower(-gamepad2.left_trigger);
+                }*/
+            }
+
+            if(gamepad2.dpad_up){
+                robot.extension.setPower(1);
+            }else if(gamepad2.dpad_down){
+                robot.extension.setPower(-1);
+            }else{
+                robot.extension.setPower(0);
+            }
             if(gamepad2.right_bumper){
                 robot.outClamp.setPosition(robot.OUT_GRAB);
             }else if(gamepad2.left_bumper){
                 robot.outClamp.setPosition(robot.OUT_RELEASE);
             }
-            if(gamepad2.dpad_up){
+            /*if(gamepad2.dpad_up){
                 robot.extRotate.setPosition(robot.ROTATE_OUT);
             }else if(gamepad2.dpad_down){
                 robot.extRotate.setPosition(robot.ROTATE_IN);
             }else if(gamepad2.dpad_right || gamepad2.dpad_left){
                 robot.extRotate.setPosition(robot.ROTATE_MID);
-            }
+            }*/
 
             //Misc servo manips control
             if(!yDown && gamepad1.y){
@@ -109,9 +129,6 @@ public class M6_TeleOp extends LinearOpMode {
             }else {
                 robot.skyClamp.setPosition(robot.SKYCLAMP_OPEN);
             }
-            if (gamepad1.y){
-                robot.goToAbsolutePosition(1,0.5, 0,0);
-            }
             if (!xDown && gamepad1.x){
                 foundationClose = !foundationClose;
                 xDown = true;
@@ -123,12 +140,25 @@ public class M6_TeleOp extends LinearOpMode {
             }else{
                 robot.foundation.setPosition(robot.FOUNDATION_OPEN);
             }
+            //a = in, b= 90 deg, y = close
+            if (gamepad2.a){
+                robot.extRotate.setPosition(robot.ROTATE_IN);
+            }
+            if (gamepad2.b){
+                robot.extRotate.setPosition(robot.ROTATE_MID);
+            }
+            if (gamepad2.y){
+                robot.extRotate.setPosition(robot.ROTATE_OUT);
+            }
+
             telemetry.addData("Velocities", "left: "+robot.odo.getVelocityL()+"    right: "+robot.odo.getVelocityR());
             telemetry.addData("left dead wheel:", robot.odo.left.getCurrentPosition());
             telemetry.addData("right dead wheel: ", robot.odo.right.getCurrentPosition());
             telemetry.addData("middle dead wheel: ", robot.odo.middle.getCurrentPosition());
             telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
             telemetry.addData("Heading", robot.getHeading());
+            telemetry.addData("Distance to Object",robot.getCurrentDistance());
+            telemetry.addData("Lift Limit",liftLimit);
             telemetry.update();
         }
     }

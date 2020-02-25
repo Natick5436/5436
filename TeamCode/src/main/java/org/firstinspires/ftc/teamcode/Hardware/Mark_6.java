@@ -4,8 +4,10 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchDevice;
@@ -16,6 +18,7 @@ import com.qualcomm.robotcore.util.ReadWriteFile;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.Math.ACMath;
 import org.firstinspires.ftc.teamcode.ThreadsandInterfaces.Odometry;
@@ -25,6 +28,7 @@ import com.qualcomm.robotcore.util.ReadWriteFile;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.File;
+import java.util.Locale;
 
 
 public class Mark_6 {
@@ -39,18 +43,19 @@ public class Mark_6 {
     public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift, misc;
     public Servo foundation, skyClamp, skyArm, extRotate, outClamp;
     public CRServo extension;
+    public DistanceSensor sensorDistance;
 
     public double SKYCLAMP_CLOSE = 0.5;
     public double SKYCLAMP_OPEN = 0.9;
     public double FOUNDATION_CLOSE = 1.0;
     public double FOUNDATION_OPEN = 0.7;
-    public double SKYARM_DOWN = 0.45;
+    public double SKYARM_DOWN = 0.35;
     public double SKYARM_UP = 0.85;
-    public double ROTATE_OUT = 0.9;
-    public double ROTATE_MID = 0.625;
-    public double ROTATE_IN = 0.35;
-    public double OUT_GRAB = 0.5;
-    public double OUT_RELEASE = 0;
+    public double ROTATE_OUT = 0.85;
+    public double ROTATE_MID = 0.5 ;
+    public double ROTATE_IN = 0.18;
+    public double OUT_GRAB = 0.75;
+    public double OUT_RELEASE = 0.1;
 
     BNO055IMU imu;
     Orientation angles;
@@ -144,7 +149,7 @@ public class Mark_6 {
             this.LENGTH = Double.parseDouble(ReadWriteFile.readFile(wheelBaseSeparationFile).trim());
             this.naturalMiddleMovementPerRadian = Double.parseDouble(ReadWriteFile.readFile(horizontalTickOffsetFile).trim());
         }
-        odo = new Odometry(ln, new DeadWheel(misc), new DeadWheel(intakeR), new DeadWheel(intakeL), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, naturalMiddleMovementPerRadian, startX, startY, startAngle, -1, 1, -1);
+        odo = new Odometry(ln, new DeadWheel(misc), new DeadWheel(intakeR), new DeadWheel(intakeL), wheelDiameter, ticksPerMotorRev, motorGearRatio, LENGTH, naturalMiddleMovementPerRadian, startX, startY, startAngle, -1, 1, 1);
         initialAngle = startAngle;
         ln.telemetry.addData("LENGTH", LENGTH);
         ln.telemetry.addData("naturalMiddle", this.naturalMiddleMovementPerRadian);
@@ -619,7 +624,7 @@ public class Mark_6 {
             distanceError = meters-distanceTraveled;
             ln.telemetry.addData("Distance error", distanceError);
             ln.telemetry.addData("angle error", angleError);
-            ln.telemetry.addData("lF motor power", lF.getPower());
+            ln.telemetry.addData("Middle dead wheel count", odo.middle.getCurrentPosition());
             ln.telemetry.update();
             if(ln.isStopRequested()){return;}
         }
@@ -998,5 +1003,48 @@ public class Mark_6 {
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         imu.getPosition();
         return ACMath.toStandardAngle(Math.toRadians(angles.firstAngle)+initialAngle);
+    }
+    public Double getCurrentDistance(){
+       double distance = sensorDistance.getDistance(DistanceUnit.METER);
+       return distance;
+    }
+    public void approachStonesSensor(double goalDistance, double goalDistanceAcc, double power)throws InterruptedException{
+        boolean distanceReached = false;
+        Double deltaDistance = new Double(getCurrentDistance());
+        while (deltaDistance.isNaN()){
+            deltaDistance = new Double(getCurrentDistance());
+            strafe(power);
+            if (ln.isStopRequested()){
+                return;
+            }
+        }
+        stopDrive();
+        ln.sleep(1000);
+        while(!distanceReached){
+            deltaDistance = new Double(getCurrentDistance());
+            distanceReached = false;
+            if(deltaDistance.isNaN()){
+                strafe(power);
+            }
+            if (getCurrentDistance()-goalDistance > 0){
+                strafe(0.25*power);
+            }
+            if (getCurrentDistance()-goalDistance < 0){
+                strafe(0.25*-power);
+            }
+            if(Math.abs(getCurrentDistance() - goalDistance) < goalDistanceAcc){
+                distanceReached = true;
+            }
+            if (distanceReached){
+               stopDrive();
+            }
+            if (ln.isStopRequested()){
+                return;
+            }
+            ln.telemetry.addData("Distance: ", deltaDistance.doubleValue());
+            ln.telemetry.update();
+        }
+        stopDrive();
+
     }
 }

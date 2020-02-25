@@ -247,6 +247,7 @@ public class Mark_4{
                 (int) (sensorColor.green() * SCALE_FACTOR),
                 (int) (sensorColor.blue() * SCALE_FACTOR),
                 hsvValues);
+        ln.telemetry.addData("Distance (cm)", String.format(Locale.US, "%.02f", sensorDistance.getDistance(DistanceUnit.CM)));
         if (sensorColor.red() > 85 && sensorColor.green() > 65){
             skystone = false;
         }else if (sensorColor.red() < 40 && sensorColor.green() < 45){

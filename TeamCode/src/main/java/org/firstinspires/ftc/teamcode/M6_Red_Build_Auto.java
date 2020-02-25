@@ -9,6 +9,8 @@ import org.firstinspires.ftc.teamcode.Hardware.Vuforia;
 import org.firstinspires.ftc.teamcode.Math.ACMath;
 import org.firstinspires.ftc.teamcode.ThreadsandInterfaces.SKYSTONE;
 
+import java.lang.reflect.Field;
+
 import javax.net.ssl.SSLKeyException;
 
 @Autonomous(name = "M6 Red Build", group = "Autonomous")
@@ -63,17 +65,24 @@ public class M6_Red_Build_Auto  extends LinearOpMode {
         robot.odo.start();
         runtime.reset();
         waitForStart();
-        robot.strafe(1, -0.2, true);
-        robot.forward(1, -(SKYSTONE.START_TO_FOUNDATION-SKYSTONE.ROBOT_WIDTH)+0.2, false);
-        robot.forward(0.4, -0.18, false);
-        robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
-        sleep(1000);
-        robot.arch(0.6, -0.21305, 0.334658, false);
-        robot.forward(1, -0.2, true);
-        robot.foundation.setPosition(robot.FOUNDATION_OPEN);
+        if(settings[0]) {
+            robot.strafe(1, -0.1, true);
+            robot.forward(1, -(SKYSTONE.START_TO_FOUNDATION - SKYSTONE.ROBOT_WIDTH) + 0.2, false);
+            robot.forward(0.4, -0.18, false);
+            robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
+            robot.strafe(1, -0.15, true);
+            robot.arch(1, -0.21305, 0.087329, false);
+            robot.forward(1, 0.5, true);
+            robot.arch(1, -0.21305, 0.401987, false);
+            robot.forward(1, -0.08, false);
+            robot.foundation.setPosition(robot.FOUNDATION_OPEN);
+        }
         telemetry.addData("Position", "X:"+robot.odo.getX()+" Y:"+robot.odo.getY());
         telemetry.update();
-        sleep(4000);
-        robot.goToAbsolutePosition(1, 0.6, SKYSTONE.FIELD_WIDTH-SKYSTONE.ROBOT_WIDTH/2, SKYSTONE.FIELD_WIDTH/2);
+        if(settings[1]){
+            robot.goToAbsolutePosition(1, 0.6, SKYSTONE.FIELD_WIDTH - (SKYSTONE.SKYBRIDGE_LENGTH-SKYSTONE.ROBOT_WIDTH/2), SKYSTONE.FIELD_WIDTH / 2, true);
+        }else {
+            robot.goToAbsolutePosition(1, 0.6, SKYSTONE.FIELD_WIDTH - SKYSTONE.ROBOT_WIDTH / 2, SKYSTONE.FIELD_WIDTH / 2, true);
+        }
     }
 }
