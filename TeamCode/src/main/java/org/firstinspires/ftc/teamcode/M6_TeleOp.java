@@ -18,7 +18,12 @@ public class M6_TeleOp extends LinearOpMode {
     boolean aDown;
     boolean xDown;
     boolean sticksDown;
+    boolean sticksPressed;
+    boolean manual  = false;
     boolean liftLimit = false;
+    boolean rightBumper = false;
+    int encoderInit = 0;
+
     @Override
     public void runOpMode()throws InterruptedException{
         robot.initialize(hardwareMap, 0, 0, 0,false);
@@ -59,6 +64,10 @@ public class M6_TeleOp extends LinearOpMode {
             }else if(!(gamepad1.left_stick_button && gamepad1.right_stick_button)){
                 sticksDown = false;
             }
+            if (gamepad2.start){
+                encoderInit = -robot.lift.getCurrentPosition()-1;
+                telemetry.addData("Init Encoder",encoderInit);
+            }
             if(fastMode){
                 drivePower = 1;
                 telemetry.addData("!FAST MODE!", "!HOLD YOUR HORSES! (click both stick buttons to cancel)");
@@ -71,18 +80,21 @@ public class M6_TeleOp extends LinearOpMode {
             robot.intakeL.setPower(gamepad2.left_stick_y);
             robot.intakeR.setPower(gamepad2.right_stick_y);
 
-            if (robot.lift.getCurrentPosition() > 0 && robot.lift.getCurrentPosition() < 400) {
-                liftLimit = false;
-                robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
-            }else{
-                liftLimit = true;
-                robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
-                /*robot.lift.setPower(0);
-                if (robot.lift.getCurrentPosition() <= 0){
-                    robot.lift.setPower(gamepad2.right_trigger);
-                }else if (robot.lift.getCurrentPosition() >= 400){
-                    robot.lift.setPower(-gamepad2.left_trigger);
-                }*/
+            if (gamepad2.x){
+                robot.lift.setPower(gamepad2.left_trigger - gamepad2.right_trigger);
+            }else if (!manual) {
+                if (robot.lift.getCurrentPosition() + encoderInit < 0 && robot.lift.getCurrentPosition() + encoderInit > -20000) {
+                    liftLimit = false;
+                    robot.lift.setPower(gamepad2.left_trigger - gamepad2.right_trigger);
+                } else {
+                    liftLimit = true;
+                    robot.lift.setPower(0);
+                    if (robot.lift.getCurrentPosition() >= 0) {
+                        robot.lift.setPower(-gamepad2.right_trigger);
+                    } else if (robot.lift.getCurrentPosition() <= -20000) {
+                        robot.lift.setPower(gamepad2.left_trigger);
+                    }
+                }
             }
 
             if(gamepad2.dpad_up){
@@ -157,8 +169,9 @@ public class M6_TeleOp extends LinearOpMode {
             telemetry.addData("middle dead wheel: ", robot.odo.middle.getCurrentPosition());
             telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
             telemetry.addData("Heading", robot.getHeading());
-            telemetry.addData("Distance to Object",robot.getCurrentDistance());
+            //telemetry.addData("Distance to Object",robot.getCurrentDistance());
             telemetry.addData("Lift Limit",liftLimit);
+            telemetry.addData("Lift Position",robot.lift.getCurrentPosition());
             telemetry.update();
         }
     }

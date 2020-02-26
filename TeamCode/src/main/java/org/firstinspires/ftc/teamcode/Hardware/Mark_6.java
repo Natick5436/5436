@@ -43,7 +43,7 @@ public class Mark_6 {
     public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift, misc;
     public Servo foundation, skyClamp, skyArm, extRotate, outClamp;
     public CRServo extension;
-    public DistanceSensor sensorDistance;
+    //public DistanceSensor sensorDistance;
 
     public double SKYCLAMP_CLOSE = 0.5;
     public double SKYCLAMP_OPEN = 0.9;
@@ -1005,8 +1005,8 @@ public class Mark_6 {
         return ACMath.toStandardAngle(Math.toRadians(angles.firstAngle)+initialAngle);
     }
     public Double getCurrentDistance(){
-       double distance = sensorDistance.getDistance(DistanceUnit.METER);
-       return distance;
+       //double distance = sensorDistance.getDistance(DistanceUnit.METER);
+       return 0.0;
     }
     public void approachStonesSensor(double goalDistance, double goalDistanceAcc, double power)throws InterruptedException{
         boolean distanceReached = false;
