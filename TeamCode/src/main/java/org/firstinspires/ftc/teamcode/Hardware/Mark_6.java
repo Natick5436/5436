@@ -280,11 +280,11 @@ public class Mark_6 {
                 ln.telemetry.addData("In Loop", distanceError);
                 ln.telemetry.update();
             }
-            if(stop) {
-                lF.setPower(-power);
-                lB.setPower(-power);
-                rF.setPower(-power);
-                rB.setPower(-power);
+            if(stop){
+                lF.setPower(-lF.getPower());
+                lB.setPower(-lB.getPower());
+                rF.setPower(-rF.getPower());
+                rB.setPower(-rB.getPower());
             }
         }else{
             while(distanceError < 0){
@@ -316,11 +316,11 @@ public class Mark_6 {
                 ln.telemetry.addData("In Loop", distanceError);
                 ln.telemetry.update();
                 }
-            if(stop) {
-                lF.setPower(power);
-                lB.setPower(power);
-                rF.setPower(power);
-                rB.setPower(power);
+            if(stop){
+                lF.setPower(-lF.getPower());
+                lB.setPower(-lB.getPower());
+                rF.setPower(-rF.getPower());
+                rB.setPower(-rB.getPower());
             }
             }
         stopDrive();
@@ -628,12 +628,12 @@ public class Mark_6 {
             ln.telemetry.update();
             if(ln.isStopRequested()){return;}
         }
-        if(stop){
-            lF.setPower(-power);
-            lB.setPower(power);
-            rF.setPower(power);
-            rB.setPower(-power);
-        }
+            if(stop){
+                lF.setPower(-lF.getPower());
+                lB.setPower(-lB.getPower());
+                rF.setPower(-rF.getPower());
+                rB.setPower(-rB.getPower());
+            }
         }else{
             while(distanceError<0){
                 if(ACMath.compassAngleShorter(getHeading(), startAngle)) {
@@ -667,10 +667,10 @@ public class Mark_6 {
                 if(ln.isStopRequested()){return;}
             }
             if(stop){
-                lF.setPower(power);
-                lB.setPower(-power);
-                rF.setPower(-power);
-                rB.setPower(power);
+                lF.setPower(-lF.getPower());
+                lB.setPower(-lB.getPower());
+                rF.setPower(-rF.getPower());
+                rB.setPower(-rB.getPower());
             }
         }
         stopDrive();
@@ -730,11 +730,11 @@ public class Mark_6 {
                 error = meters - distanceTraveled;
                 if(ln.isStopRequested()){return;}
             }
-            if(stop) {
-                lF.setPower(-v);
-                lB.setPower(-v);
-                rF.setPower(-v);
-                rB.setPower(-v);
+            if(stop){
+                lF.setPower(-lF.getPower());
+                lB.setPower(-lB.getPower());
+                rF.setPower(-rF.getPower());
+                rB.setPower(-rB.getPower());
             }
         }else{
             while (error < 0) {
@@ -767,11 +767,11 @@ public class Mark_6 {
                 error = meters - distanceTraveled;
                 if(ln.isStopRequested()){return;}
             }
-            if(stop) {
-                lF.setPower(v);
-                lB.setPower(v);
-                rF.setPower(v);
-                rB.setPower(v);
+            if(stop){
+                lF.setPower(-lF.getPower());
+                lB.setPower(-lB.getPower());
+                rF.setPower(-rF.getPower());
+                rB.setPower(-rB.getPower());
             }
         }
         stopDrive();
@@ -997,6 +997,21 @@ public class Mark_6 {
         double deltaY = y-odo.getY();
         goToDeltaCurvePosition(power, deltaX, deltaY, stop);
     }
+    public void angleStrafeToAbsolutePosition(double power, double x, double y){
+        double deltaX = x-odo.getX();
+        double deltaY = y-odo.getY();
+        double travelAngle = Math.atan2(deltaY, deltaX)+Math.PI/2-odo.getAngle();
+        double distance = Math.hypot(deltaX, deltaY);
+        angleStrafe(power, travelAngle, distance, true);
+    }
+
+    public void angleStrafeToAbsolutePosition(double power, double x, double y, boolean stop){
+        double deltaX = x-odo.getX();
+        double deltaY = y-odo.getY();
+        double travelAngle = Math.atan2(deltaY, deltaX)+Math.PI/2-odo.getAngle();
+        double distance = Math.hypot(deltaX, deltaY);
+        angleStrafe(power, travelAngle, distance, stop);
+    }
 
     //Misc methods
     public double getHeading(){
@@ -1013,7 +1028,7 @@ public class Mark_6 {
         Double deltaDistance = new Double(getCurrentDistance());
         while (deltaDistance.isNaN()){
             deltaDistance = new Double(getCurrentDistance());
-            strafe(power);
+            forward(power);
             if (ln.isStopRequested()){
                 return;
             }
@@ -1024,13 +1039,13 @@ public class Mark_6 {
             deltaDistance = new Double(getCurrentDistance());
             distanceReached = false;
             if(deltaDistance.isNaN()){
-                strafe(power);
+                forward(power);
             }
             if (getCurrentDistance()-goalDistance > 0){
-                strafe(0.25*power);
+                forward(0.25*power);
             }
             if (getCurrentDistance()-goalDistance < 0){
-                strafe(0.25*-power);
+                forward(0.25*-power);
             }
             if(Math.abs(getCurrentDistance() - goalDistance) < goalDistanceAcc){
                 distanceReached = true;

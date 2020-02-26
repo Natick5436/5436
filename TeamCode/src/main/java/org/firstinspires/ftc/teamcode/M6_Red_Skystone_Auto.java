@@ -21,7 +21,7 @@ public class M6_Red_Skystone_Auto  extends LinearOpMode {
         robot.initialize(hardwareMap, SKYSTONE.FIELD_WIDTH-0.23, 1.15, -Math.PI/2, false);
 
         int itemSelected = 0;
-        String[] settingNames = {"Move foundation(true = yes, false = no): ", "Park skybridge side(true) or wall side (false): ", "Travel wall side: ", "Help Skystone: ", "Help first on close side(true) or on far side (false): "};
+        String[] settingNames = {"Move foundation(true = yes, false = no): ", "Park skybridge side(true) or wall side (false): "};
         boolean[] settings = new boolean[settingNames.length];
         boolean active = false;
         while(!isStarted() && !isStopRequested()){
