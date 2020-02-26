@@ -1028,7 +1028,7 @@ public class Mark_6 {
         Double deltaDistance = new Double(getCurrentDistance());
         while (deltaDistance.isNaN()){
             deltaDistance = new Double(getCurrentDistance());
-            strafe(power);
+            forward(power);
             if (ln.isStopRequested()){
                 return;
             }
@@ -1039,13 +1039,13 @@ public class Mark_6 {
             deltaDistance = new Double(getCurrentDistance());
             distanceReached = false;
             if(deltaDistance.isNaN()){
-                strafe(power);
+                forward(power);
             }
             if (getCurrentDistance()-goalDistance > 0){
-                strafe(0.25*power);
+                forward(0.25*power);
             }
             if (getCurrentDistance()-goalDistance < 0){
-                strafe(0.25*-power);
+                forward(0.25*-power);
             }
             if(Math.abs(getCurrentDistance() - goalDistance) < goalDistanceAcc){
                 distanceReached = true;
