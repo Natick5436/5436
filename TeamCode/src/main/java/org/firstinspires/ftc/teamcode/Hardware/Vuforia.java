@@ -94,6 +94,7 @@ public class Vuforia extends Thread {
     private Orientation skystoneOrientation;
 
     private boolean inited;
+    public boolean redMode;
 
     LinearOpMode ln;
     HardwareMap hardwareMap;
@@ -309,11 +310,15 @@ public class Vuforia extends Thread {
             /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                     translation.get(0), translation.get(1), translation.get(2));*/
             ln.telemetry.addData("y-position",translation.get(1));
-            if (!ln.opModeIsActive()){
+            if (!ln.opModeIsActive() && redMode){
                 if (translation.get(1) < -80 && translation.get(1) > -120) {
                     pos = 2;
                 }else {
                     pos = 0;
+                }
+            }else{
+                if (!ln.opModeIsActive() && !redMode){
+                    pos = 500;
                 }
             }
             /*if(translation.get(1) < -100){

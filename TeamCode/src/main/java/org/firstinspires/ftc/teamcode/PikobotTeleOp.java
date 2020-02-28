@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 //@Disabled
 @TeleOp(name = "Picobot", group = "TeleOp")
 public class PikobotTeleOp extends LinearOpMode {
-    public DcMotor right, left, strafe;
+    public DcMotor right, left, strafe, arm, clamp;
     private boolean pressed = true;
 
     @Override
@@ -21,6 +21,8 @@ public class PikobotTeleOp extends LinearOpMode {
         right = hardwareMap.dcMotor.get("right");
         left = hardwareMap.dcMotor.get("left");
         strafe = hardwareMap.dcMotor.get("strafe");
+        arm = hardwareMap.dcMotor.get("arm");
+        clamp = hardwareMap.dcMotor.get("clamp");
 
         right.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -37,6 +39,20 @@ public class PikobotTeleOp extends LinearOpMode {
             if ((gamepad1.a || gamepad1.x) && pressed) {
                 SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, death);
                 pressed = false;
+            }
+            if (gamepad1.dpad_up){
+                arm.setPower(0.2);
+            }else if (gamepad1.dpad_down){
+                arm.setPower(-0.2);
+            }else{
+                arm.setPower(0);
+            }
+            if (gamepad1.dpad_right){
+                clamp.setPower(0.15);
+            }else if (gamepad1.dpad_left){
+                clamp.setPower(-0.15);
+            }else{
+                clamp.setPower(0);
             }
         }
     }

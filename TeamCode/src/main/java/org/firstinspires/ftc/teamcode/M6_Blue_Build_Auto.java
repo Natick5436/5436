@@ -13,14 +13,14 @@ import java.lang.reflect.Field;
 
 import javax.net.ssl.SSLKeyException;
 
-@Autonomous(name = "M6 Red Build", group = "Autonomous")
-public class M6_Red_Build_Auto  extends LinearOpMode {
+@Autonomous(name = "M6 Blue Build", group = "Autonomous")
+public class M6_Blue_Build_Auto  extends LinearOpMode {
     Mark_6 robot = new Mark_6(this);
     ElapsedTime runtime = new ElapsedTime();
 
     @Override
     public void runOpMode() throws InterruptedException{
-        robot.initialize(hardwareMap, SKYSTONE.FIELD_WIDTH-(SKYSTONE.ROBOT_WIDTH/2), SKYSTONE.FIELD_WIDTH-0.8, 0, false);
+        robot.initialize(hardwareMap, 0.255, SKYSTONE.FIELD_WIDTH-0.8, Math.PI, false);
         int itemSelected = 0;
         String[] settingNames = {"Move foundation(true = yes, false = no): ", "Park skybridge side(true) or wall side (false): ", "Travel wall side: ", "Help Skystone: ", "Help first on close side(true) or on far side (false): "};
         boolean[] settings = new boolean[settingNames.length];
@@ -62,23 +62,26 @@ public class M6_Red_Build_Auto  extends LinearOpMode {
         runtime.reset();
         waitForStart();
         if(settings[0]) {
-            robot.strafe(1, -0.1, true);
+            robot.strafe(1, 0.1, true);
             robot.forward(1, -(SKYSTONE.START_TO_FOUNDATION - SKYSTONE.ROBOT_WIDTH) + 0.2, false);
             robot.forward(0.4, -0.18, false);
             robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
-            robot.strafe(1, -0.15, true);
-            robot.arch(1, -0.21305, 0.087329, false);
-            robot.forward(1, 0.5, true);
-            robot.arch(1, -0.21305, 0.401987, false);
+            robot.strafe(1, 0.1, true);
+            robot.arch(1, 0.21305, 0.087329, false);
+            robot.forward(0.7, 0.5, true);
+            telemetry.addData("Forward is done", "Yes");
+            telemetry.update();
+            robot.arch(1, 0.21305, 0.401987, false);
             robot.forward(1, -0.08, false);
             robot.foundation.setPosition(robot.FOUNDATION_OPEN);
+            sleep(500);
         }
         telemetry.addData("Position", "X:"+robot.odo.getX()+" Y:"+robot.odo.getY());
         telemetry.update();
         if(settings[1]){
-            robot.goToAbsolutePosition(1, 0.6, SKYSTONE.FIELD_WIDTH - (SKYSTONE.SKYBRIDGE_LENGTH-SKYSTONE.ROBOT_WIDTH/2), SKYSTONE.FIELD_WIDTH / 2, true);
+            robot.goToAbsolutePosition(1, 0.6, (SKYSTONE.SKYBRIDGE_LENGTH-SKYSTONE.ROBOT_WIDTH/2), SKYSTONE.FIELD_WIDTH / 2, true);
         }else {
-            robot.goToAbsolutePosition(1, 0.6, SKYSTONE.FIELD_WIDTH - SKYSTONE.ROBOT_WIDTH / 2, SKYSTONE.FIELD_WIDTH / 2, true);
+            robot.goToAbsolutePosition(1, 0.6, (SKYSTONE.ROBOT_WIDTH / 2)+0.05, SKYSTONE.FIELD_WIDTH / 2, true);
         }
     }
 }

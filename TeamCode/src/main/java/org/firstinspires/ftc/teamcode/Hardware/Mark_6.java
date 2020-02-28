@@ -41,21 +41,21 @@ public class Mark_6 {
     }
 
     public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift, misc;
-    public Servo foundation, skyClamp, skyArm, extRotate, outClamp;
+    public Servo foundation, skyClamp1, skyClamp2, skyArm1,skyArm2, extRotate, outClamp;
     public CRServo extension;
     //public DistanceSensor sensorDistance;
 
     public double SKYCLAMP_CLOSE = 0.5;
     public double SKYCLAMP_OPEN = 0.9;
-    public double FOUNDATION_CLOSE = 1.0;
-    public double FOUNDATION_OPEN = 0.7;
+    public double FOUNDATION_CLOSE = 0.85;
+    public double FOUNDATION_OPEN = 0.6;
     public double SKYARM_DOWN = 0.35;
     public double SKYARM_UP = 0.85;
     public double ROTATE_OUT = 0.85;
     public double ROTATE_MID = 0.5 ;
     public double ROTATE_IN = 0.18;
-    public double OUT_GRAB = 0.75;
-    public double OUT_RELEASE = 0.1;
+    public double OUT_GRAB = 0.45;
+    public double OUT_RELEASE = 0.0;
 
     BNO055IMU imu;
     Orientation angles;
@@ -99,8 +99,10 @@ public class Mark_6 {
         misc = hardwareMap.dcMotor.get("misc");
 
         foundation = hardwareMap.servo.get("foundation");
-        skyClamp = hardwareMap.servo.get("skyClamp");
-        skyArm = hardwareMap.servo.get("skyArm");
+        skyClamp1 = hardwareMap.servo.get("skyClamp1");
+        skyClamp2 = hardwareMap.servo.get("skyClamp2");
+        skyArm1 = hardwareMap.servo.get("skyArm1");
+        skyArm2 = hardwareMap.servo.get("skyArm2");
         extension = hardwareMap.crservo.get("extension");
         extRotate = hardwareMap.servo.get("extRotate");
         outClamp = hardwareMap.servo.get("outClamp");
@@ -136,8 +138,9 @@ public class Mark_6 {
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         misc.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        skyArm.setPosition(0.3);
-        skyClamp.setPosition(0.9);
+        skyArm1.setPosition(0.3);
+        skyArm2.setPosition(SKYARM_UP);
+        skyClamp1.setPosition(0.9);
         foundation.setPosition(FOUNDATION_OPEN);
         extension.setPower(0);
         extRotate.setPosition(ROTATE_IN);

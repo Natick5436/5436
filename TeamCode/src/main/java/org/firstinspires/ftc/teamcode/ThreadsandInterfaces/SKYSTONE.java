@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.ThreadsandInterfaces;
 
 public class SKYSTONE {
-    public static final double FIELD_WIDTH = 3.5814;
+    public static final double FIELD_WIDTH = 3.58375;
     public static final double ROBOT_WIDTH = 0.4572;
     public static final double DISTANCE_TO_STONES = 1.2;
     public static final double QUARRY_LENGTH = 1.2319;
