@@ -318,7 +318,11 @@ public class Vuforia extends Thread {
                 }
             }else{
                 if (!ln.opModeIsActive() && !redMode){
-                    pos = 500;
+                    if (translation.get(1) < -80 && translation.get(1) > -120) {
+                        pos = 2;
+                    }else {
+                        pos = 0;
+                    }
                 }
             }
             /*if(translation.get(1) < -100){
@@ -337,6 +341,7 @@ public class Vuforia extends Thread {
         else {
             if (!targetVisible) {
                 ln.telemetry.addData("Visible Target", "none");
+                pos = 0;
             }
         }
         ln.telemetry.update();

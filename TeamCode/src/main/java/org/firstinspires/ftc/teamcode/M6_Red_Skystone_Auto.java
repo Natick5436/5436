@@ -60,6 +60,8 @@ public class M6_Red_Skystone_Auto  extends LinearOpMode {
         robot.odo.start();
         runtime.reset();
         waitForStart();
+        robot.skyClamp1.setPosition(robot.SKYCLAMP_OPEN);
+        robot.skyClamp2.setPosition(robot.SKYCLAMP_OPEN);
        // t1.exit = true;
        // Thread.sleep(600);
        // t1.exit = false;
@@ -76,24 +78,68 @@ public class M6_Red_Skystone_Auto  extends LinearOpMode {
             }
         }
         robot.strafe(1.0,SKYSTONE.DISTANCE_TO_STONES/2-SKYSTONE.ROBOT_WIDTH/2,true);
-        robot.turn(0.3, 0,false);
+        robot.turn(0.6, 0,false);
+        robot.approachStonesSensorR(0.15,0.02,0.2);
         if (finalPos == 1) {
             robot.strafe(0.6, 0.5, true);
-        }
-        robot.forward(0.2,-((SKYSTONE.DISTANCE_TO_STONES/2)-SKYSTONE.ROBOT_WIDTH/2-0.27),true);
-        robot.skyArm1.setPosition(0.85);
+        }else if(finalPos == 3){
+            robot.strafe(0.6, 0.04, true);
+        }/*else if(finalPos == 2){
+            robot.strafe(0.6, 0.02, true);
+        }*/
+        robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
+        robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
         sleep(500);
-        robot.skyClamp1.setPosition(0.5);
+        double blockX = robot.odo.getX();
+        robot.skyClamp1.setPosition(robot.SKYCLAMP_CLOSE);
         sleep(200);
-        robot.skyArm1.setPosition(0.45);
-        robot.forward(0.5,0.05,true);
+        robot.skyArm1.setPosition(robot.SKYARM1_UP);
+        robot.skyArm2.setPosition((robot.SKYARM2_DOWN+robot.SKYARM2_UP)/2);
+        sleep(1000);
+        robot.skyArm2.setPosition(robot.SKYARM2_UP);
+        /*robot.forward(0.5,0.05,true);
         robot.goToAbsolutePosition(1,0.6, robot.odo.getX(),SKYSTONE.FIELD_WIDTH-SKYSTONE.WALL_TO_FOUNDATION-SKYSTONE.FOUNDATION_LENGTH/2-0.07);
         robot.turn(0.6,0,false);
-        robot.forward(0.5, -0.18, false);
-        robot.skyArm1.setPosition(0.7);
+        robot.forward(0.5, -0.18, false);*/
+        robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-3*SKYSTONE.SKYBRIDGE_LENGTH/4+0.1, SKYSTONE.FIELD_WIDTH/2+0.15, false);
+        robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-(SKYSTONE.START_TO_FOUNDATION-SKYSTONE.ROBOT_WIDTH/2+0.13), SKYSTONE.FIELD_WIDTH-SKYSTONE.WALL_TO_FOUNDATION-SKYSTONE.FOUNDATION_LENGTH/2+0.3, true);
+        robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
         sleep(500);
-        robot.skyClamp1.setPosition(0.9);
+        robot.skyClamp1.setPosition(robot.SKYCLAMP_OPEN);
         sleep(200);
-        robot.skyArm1.setPosition(0.45);
+        robot.skyArm1.setPosition(robot.SKYARM1_UP);
+        robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-3*SKYSTONE.SKYBRIDGE_LENGTH/4+0.1, SKYSTONE.FIELD_WIDTH/2+0.15, false);
+        double secondBlockY = SKYSTONE.ROBOT_WIDTH/2+0.02;
+        for(int i = 1; i<finalPos; i++){
+            secondBlockY += SKYSTONE.STONE_LENGTH;
+        }
+        robot.strafe(1, SKYSTONE.FIELD_WIDTH/2+0.15-secondBlockY, true);
+        robot.approachStonesSensor(robot.sensorDistanceR,0.15,0.02,0.2);
+        robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
+        sleep(500);
+        robot.skyClamp1.setPosition(robot.SKYCLAMP_CLOSE);
+        sleep(200);
+        robot.skyArm1.setPosition(robot.SKYARM1_UP);
+        robot.skyArm2.setPosition((robot.SKYARM2_DOWN+robot.SKYARM2_UP)/2);
+        sleep(700);
+        robot.skyArm2.setPosition(robot.SKYARM2_UP);
+        robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-3*SKYSTONE.SKYBRIDGE_LENGTH/4+0.1, SKYSTONE.FIELD_WIDTH/2+0.15, false);
+        robot.foundation.setPosition(robot.FOUNDATION_OPEN);
+        robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-(SKYSTONE.START_TO_FOUNDATION-SKYSTONE.ROBOT_WIDTH/2), SKYSTONE.FIELD_WIDTH-SKYSTONE.WALL_TO_FOUNDATION-SKYSTONE.FOUNDATION_LENGTH/2+0.3, true);
+        if(settings[0]){
+            robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
+            robot.strafe(1, -0.15, true);
+            robot.arch(1, -0.21305, 0.087329, false);
+            robot.forward(1, 0.5, true);
+            robot.arch(1, -0.21305, 0.401987, false);
+            robot.forward(1, -0.08, false);
+            robot.foundation.setPosition(robot.FOUNDATION_OPEN);
+        }
+        robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
+        sleep(500);
+        robot.skyClamp1.setPosition(robot.SKYCLAMP_OPEN);
+        sleep(200);
+        robot.skyArm1.setPosition(robot.SKYARM1_UP);
+        robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-3*SKYSTONE.SKYBRIDGE_LENGTH/4+0.1, SKYSTONE.FIELD_WIDTH/2+0.15, true);
     }
 }

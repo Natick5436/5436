@@ -43,14 +43,17 @@ public class Mark_6 {
     public DcMotor lF, lB, rF, rB, intakeL, intakeR, lift, misc;
     public Servo foundation, skyClamp1, skyClamp2, skyArm1,skyArm2, extRotate, outClamp;
     public CRServo extension;
-    //public DistanceSensor sensorDistance;
+    public DistanceSensor sensorDistanceR, sensorDistanceB;
+    public ColorSensor sensorColor;
 
     public double SKYCLAMP_CLOSE = 0.5;
-    public double SKYCLAMP_OPEN = 0.9;
-    public double FOUNDATION_CLOSE = 0.85;
+    public double SKYCLAMP_OPEN = 1;
+    public double FOUNDATION_CLOSE = 0.92;
     public double FOUNDATION_OPEN = 0.6;
-    public double SKYARM_DOWN = 0.35;
-    public double SKYARM_UP = 0.85;
+    public double SKYARM1_DOWN = 0.5;
+    public double SKYARM1_UP = 0;
+    public double SKYARM2_DOWN = 0.5;
+    public double SKYARM2_UP = 1;
     public double ROTATE_OUT = 0.85;
     public double ROTATE_MID = 0.5 ;
     public double ROTATE_IN = 0.18;
@@ -80,8 +83,8 @@ public class Mark_6 {
     public Odometry odo;
     double initialAngle;
 
-    final double angleAccuracy = 0.005;
-    final double distanceAccuracy = 0.01;
+    final double angleAccuracy = 0.01;
+    final double distanceAccuracy = 0.05;
 
     LinearOpMode ln;
     public Mark_6(LinearOpMode linear) {
@@ -106,6 +109,8 @@ public class Mark_6 {
         extension = hardwareMap.crservo.get("extension");
         extRotate = hardwareMap.servo.get("extRotate");
         outClamp = hardwareMap.servo.get("outClamp");
+        sensorDistanceR = hardwareMap.get(DistanceSensor.class, "sensorDistanceR");
+        sensorDistanceB = hardwareMap.get(DistanceSensor.class, "sensorDistanceB");
 
         lF.setDirection(DcMotorSimple.Direction.REVERSE);
         lB.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -138,9 +143,10 @@ public class Mark_6 {
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         misc.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        skyArm1.setPosition(0.3);
-        skyArm2.setPosition(SKYARM_UP);
-        skyClamp1.setPosition(0.9);
+        skyArm1.setPosition(SKYARM1_UP);
+        skyArm2.setPosition(SKYARM2_UP);
+        skyClamp1.setPosition(SKYCLAMP_CLOSE);
+        skyClamp2.setPosition(SKYCLAMP_CLOSE);
         foundation.setPosition(FOUNDATION_OPEN);
         extension.setPower(0);
         extRotate.setPosition(ROTATE_IN);
@@ -391,6 +397,10 @@ public class Mark_6 {
             ln.telemetry.addData("Compass Angle: ", useCompassAngle);
             ln.telemetry.update();
         }
+        rF.setPower(-rF.getPower());
+        rB.setPower(-rB.getPower());
+        lF.setPower(-lF.getPower());
+        lB.setPower(-lB.getPower());
         rF.setPower(0);
         rB.setPower(0);
         lF.setPower(0);
@@ -447,6 +457,10 @@ public class Mark_6 {
             ln.telemetry.addData("abs",targetAngleAbs);
             ln.telemetry.update();
         }
+        rF.setPower(-rF.getPower());
+        rB.setPower(-rB.getPower());
+        lF.setPower(-lF.getPower());
+        lB.setPower(-lB.getPower());
         rF.setPower(0);
         rB.setPower(0);
         lF.setPower(0);
@@ -503,11 +517,16 @@ public class Mark_6 {
             ln.telemetry.addData("abs",targetAngleAbs);
             ln.telemetry.update();
         }
+        rF.setPower(-rF.getPower());
+        rB.setPower(-rB.getPower());
+        lF.setPower(-lF.getPower());
+        lB.setPower(-lB.getPower());
         rF.setPower(0);
         rB.setPower(0);
         lF.setPower(0);
         lB.setPower(0);
     }
+
     public void odometryTurn(double power, double targetAngle){
         this.setStatus(Mark_5.Status.TURNING);
         double angle = odo.getAngle();
@@ -559,6 +578,10 @@ public class Mark_6 {
             ln.telemetry.addData("abs",targetAngleAbs);
             ln.telemetry.update();
         }
+        rF.setPower(-rF.getPower());
+        rB.setPower(-rB.getPower());
+        lF.setPower(-lF.getPower());
+        lB.setPower(-lB.getPower());
         rF.setPower(0);
         rB.setPower(0);
         lF.setPower(0);
@@ -807,15 +830,22 @@ public class Mark_6 {
         double currentEncoderX = odo.middle.getCurrentPosition();
         double distanceTraveledX = middleDeadWheelCorrection*wheelCirc*(currentEncoderX-startEncoderX)/ticksPer;
         double distanceErrorX = meters*Math.cos(angle) - distanceTraveledX;
-        double lowestPower = 0.2;
+        double lowestPower = 0.3;
+        double startTime = System.currentTimeMillis();
         while(Math.abs(Math.hypot(distanceErrorX, distanceErrorY)) > distanceAccuracy){
-            angleStrafe(power*(lowestPower+Math.hypot(distanceErrorX, distanceErrorY)/meters), Math.atan2(distanceErrorY, distanceErrorX));
+            angleStrafe(Range.clip(power*(lowestPower+Math.hypot(distanceErrorX, distanceErrorY)/meters), -1, 1), Math.atan2(distanceErrorY, distanceErrorX));
             currentEncoderX = odo.middle.getCurrentPosition();
             distanceTraveledX = middleDeadWheelCorrection*wheelCirc*(currentEncoderX-startEncoderX)/ticksPer;
             distanceErrorX = meters*Math.cos(angle) - distanceTraveledX;
             currentEncoderY = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
             distanceTraveledY = wheelCirc*(currentEncoderY-startEncoderY)/ticksPer;
             distanceErrorY = meters*Math.sin(angle)-distanceTraveledY;
+            if(System.currentTimeMillis()-startTime > 2000){
+                lowestPower = 0.2;
+            }
+            if(ln.isStopRequested()){
+                return;
+            }
         }
         if(stop){
             lF.setPower(-lF.getPower());
@@ -1022,35 +1052,41 @@ public class Mark_6 {
         imu.getPosition();
         return ACMath.toStandardAngle(Math.toRadians(angles.firstAngle)+initialAngle);
     }
-    public Double getCurrentDistance(){
-       //double distance = sensorDistance.getDistance(DistanceUnit.METER);
-       return 0.0;
-    }
-    public void approachStonesSensor(double goalDistance, double goalDistanceAcc, double power)throws InterruptedException{
+    public void approachStonesSensor(DistanceSensor sensor, double goalDistance, double goalDistanceAcc, double power)throws InterruptedException{
         boolean distanceReached = false;
-        Double deltaDistance = new Double(getCurrentDistance());
+        Double deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
         while (deltaDistance.isNaN()){
-            deltaDistance = new Double(getCurrentDistance());
+            deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
             forward(power);
             if (ln.isStopRequested()){
                 return;
             }
         }
-        stopDrive();
-        ln.sleep(1000);
         while(!distanceReached){
-            deltaDistance = new Double(getCurrentDistance());
+            deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
             distanceReached = false;
-            if(deltaDistance.isNaN()){
-                forward(power);
+            if (sensor == sensorDistanceB){
+                if(deltaDistance.isNaN()){
+                    forward(power);
+                }
+                if (sensor.getDistance(DistanceUnit.METER) - goalDistance > 0) {
+                    forward(0.5*power);
+                }
+                if (sensor.getDistance(DistanceUnit.METER) - goalDistance < 0) {
+                    forward(0.5*-power);
+                }
+            }else{
+                if(deltaDistance.isNaN()){
+                    forward(power);
+                }
+                if (sensor.getDistance(DistanceUnit.METER) - goalDistance > 0) {
+                    forward(0.5*power);
+                }
+                if (sensor.getDistance(DistanceUnit.METER) - goalDistance < 0) {
+                    forward(0.5*-power);
+                }
             }
-            if (getCurrentDistance()-goalDistance > 0){
-                forward(0.25*power);
-            }
-            if (getCurrentDistance()-goalDistance < 0){
-                forward(0.25*-power);
-            }
-            if(Math.abs(getCurrentDistance() - goalDistance) < goalDistanceAcc){
+            if(Math.abs(sensor.getDistance(DistanceUnit.METER) - goalDistance) < goalDistanceAcc){
                 distanceReached = true;
             }
             if (distanceReached){
@@ -1063,6 +1099,41 @@ public class Mark_6 {
             ln.telemetry.update();
         }
         stopDrive();
-
+    }
+    public void approachStonesSensorR(double goalDistance, double goalDistanceAcc, double power)throws InterruptedException{
+        boolean distanceReached = false;
+        Double deltaDistance = new Double(sensorDistanceR.getDistance(DistanceUnit.METER));
+        while (deltaDistance.isNaN()){
+            deltaDistance = new Double(sensorDistanceR.getDistance(DistanceUnit.METER));
+            forward(power);
+            if (ln.isStopRequested()){
+                return;
+            }
+        }
+        while(!distanceReached){
+            deltaDistance = new Double(sensorDistanceR.getDistance(DistanceUnit.METER));
+            distanceReached = false;
+                if(deltaDistance.isNaN()){
+                    forward(-power);
+                }
+                if (sensorDistanceR.getDistance(DistanceUnit.METER) - goalDistance > 0) {
+                    forward(0.5*-power);
+                }
+                if (sensorDistanceR.getDistance(DistanceUnit.METER) - goalDistance < 0) {
+                    forward(0.5*power);
+                }
+            if(Math.abs(sensorDistanceR.getDistance(DistanceUnit.METER) - goalDistance) < goalDistanceAcc){
+                distanceReached = true;
+            }
+            if (distanceReached){
+                stopDrive();
+            }
+            if (ln.isStopRequested()){
+                return;
+            }
+            ln.telemetry.addData("Distance: ", deltaDistance.doubleValue());
+            ln.telemetry.update();
+        }
+        stopDrive();
     }
 }

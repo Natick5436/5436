@@ -10,4 +10,5 @@ public class SKYSTONE {
     public static final double WALL_TO_FOUNDATION = 0.1016;
     public static final double START_TO_FOUNDATION = 1.21;
     public static final double SKYBRIDGE_LENGTH = 1.168;
+    public static final double STONE_LENGTH = 0.2032;
 }

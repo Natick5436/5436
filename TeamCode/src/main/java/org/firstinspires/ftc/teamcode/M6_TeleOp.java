@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware.Mark_5;
 import org.firstinspires.ftc.teamcode.Hardware.Mark_6;
 
@@ -17,6 +18,7 @@ public class M6_TeleOp extends LinearOpMode {
     boolean yDown;
     boolean aDown;
     boolean xDown;
+    boolean bDown;
     boolean sticksDown;
     boolean sticksPressed;
     boolean manual  = false;
@@ -32,10 +34,12 @@ public class M6_TeleOp extends LinearOpMode {
         yDown = false;
         boolean armClose = true;
         aDown = false;
-        boolean clampClose = true;
+        boolean arm2Close = true;
         boolean foundationClose = true;
         xDown = false;
         boolean bumperDown = false;
+        bDown = false;
+        boolean clampClose = true;
 
         waitForStart();
         robot.odo.start();
@@ -94,15 +98,15 @@ public class M6_TeleOp extends LinearOpMode {
             if (gamepad2.x){
                 robot.lift.setPower(gamepad2.left_trigger - gamepad2.right_trigger);
             }else if (!manual) {
-                if (robot.lift.getCurrentPosition() + encoderInit < 0 && robot.lift.getCurrentPosition() + encoderInit > -20000) {
+                if (robot.lift.getCurrentPosition() + encoderInit < -20 && robot.lift.getCurrentPosition() + encoderInit > -14500) {
                     liftLimit = false;
                     robot.lift.setPower(gamepad2.left_trigger - gamepad2.right_trigger);
                 } else {
                     liftLimit = true;
                     robot.lift.setPower(0);
-                    if (robot.lift.getCurrentPosition() + encoderInit >= 0) {
+                    if (robot.lift.getCurrentPosition() + encoderInit >= -20) {
                         robot.lift.setPower(-gamepad2.right_trigger);
-                    } else if (robot.lift.getCurrentPosition() <= -20000) {
+                    } else if (robot.lift.getCurrentPosition() <= -14500) {
                         robot.lift.setPower(gamepad2.left_trigger);
                     }
                 }
@@ -136,34 +140,40 @@ public class M6_TeleOp extends LinearOpMode {
                 yDown = false;
             }
             if(armClose){
-                robot.skyArm2.setPosition(1-robot.SKYARM_DOWN);
+                robot.skyArm1.setPosition(robot.SKYARM1_UP);
 
             }else{
-                robot.skyArm2.setPosition(1-robot.SKYARM_UP);
-            }
-            if (gamepad1.b){
-                robot.skyClamp1.setPosition(robot.SKYCLAMP_CLOSE);
-                robot.skyClamp2.setPosition(robot.SKYCLAMP_CLOSE);
-            }
-            if (gamepad1.x){
-                robot.skyClamp1.setPosition(robot.SKYCLAMP_OPEN);
-                robot.skyClamp2.setPosition(robot.SKYCLAMP_OPEN);
+                robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
             }
             if(!aDown && gamepad1.a){
-                clampClose = !clampClose;
+                arm2Close = !arm2Close;
                 aDown = true;
             }else if(!gamepad1.a){
                 aDown = false;
             }
-            if (clampClose){
-                robot.skyArm1.setPosition(robot.SKYARM_DOWN);
+            if (arm2Close){
+                robot.skyArm2.setPosition(robot.SKYARM2_UP);
             }else {
-                robot.skyArm1.setPosition(robot.SKYARM_UP);
+                robot.skyArm2.setPosition(robot.SKYARM2_DOWN);
+            }
+            if(!bDown && gamepad1.b){
+                clampClose = !clampClose;
+                bDown = true;
+            }else if(!gamepad1.b){
+                bDown = false;
+            }
+            if(clampClose){
+                robot.skyClamp1.setPosition(robot.SKYCLAMP_CLOSE);
+                robot.skyClamp2.setPosition(robot.SKYCLAMP_CLOSE);
+            }else{
+                robot.skyClamp1.setPosition(robot.SKYCLAMP_OPEN);
+                robot.skyClamp2.setPosition(robot.SKYCLAMP_OPEN);
             }
             if (!xDown && gamepad1.x){
                 foundationClose = !foundationClose;
                 xDown = true;
-            }else if(!gamepad1.x){
+            }
+            if(!gamepad1.x){
                 xDown = false;
             }
             if (foundationClose){
@@ -188,9 +198,11 @@ public class M6_TeleOp extends LinearOpMode {
             telemetry.addData("middle dead wheel: ", robot.odo.middle.getCurrentPosition());
             telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
             telemetry.addData("Heading", robot.getHeading());
-            //telemetry.addData("Distance to Object",robot.getCurrentDistance());
+            telemetry.addData("Distance to Object RED",robot.sensorDistanceR.getDistance(DistanceUnit.METER));
+            telemetry.addData("Distance to Object BLUE",robot.sensorDistanceB.getDistance(DistanceUnit.METER));
             telemetry.addData("Lift Limit",liftLimit);
             telemetry.addData("Lift Position",robot.lift.getCurrentPosition());
+            telemetry.addData("CurrentFoundation",robot.foundation.getPosition());
             telemetry.update();
         }
     }
