@@ -22,7 +22,7 @@ public class M6_Red_Skystone_Auto  extends LinearOpMode {
 
         t1.redMode = true;
         int itemSelected = 0;
-        String[] settingNames = {"Move foundation(true = yes, false = no): ", "Park skybridge side(true) or wall side (false): "};
+        String[] settingNames = {"Move foundation(true = yes, false = no): ", "Park skybridge side(false) or wall side (true): "};
         boolean[] settings = new boolean[settingNames.length];
         boolean active = false;
         while(!isStarted() && !isStopRequested()){
@@ -79,34 +79,36 @@ public class M6_Red_Skystone_Auto  extends LinearOpMode {
         }
         robot.strafe(1.0,SKYSTONE.DISTANCE_TO_STONES/2-SKYSTONE.ROBOT_WIDTH/2,true);
         robot.turn(0.6, 0,false);
-        robot.approachStonesSensorR(0.15,0.02,0.2);
+        robot.approachStonesSensor(robot.sensorDistanceR, 0.15,0.03,0.3);
+        robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
         if (finalPos == 1) {
             robot.strafe(0.6, 0.5, true);
+            robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
         }else if(finalPos == 3){
+            robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
             robot.strafe(0.6, 0.04, true);
-        }/*else if(finalPos == 2){
-            robot.strafe(0.6, 0.02, true);
-        }*/
-        robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
-        robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
-        sleep(500);
+        }else if(finalPos == 2){
+            robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
+            sleep(400);
+            //robot.strafe(0.6, 0.02, true);
+        }
         double blockX = robot.odo.getX();
         robot.skyClamp1.setPosition(robot.SKYCLAMP_CLOSE);
-        sleep(200);
+        sleep(100);
         robot.skyArm1.setPosition(robot.SKYARM1_UP);
         robot.skyArm2.setPosition((robot.SKYARM2_DOWN+robot.SKYARM2_UP)/2);
-        sleep(1000);
+        sleep(500);
         robot.skyArm2.setPosition(robot.SKYARM2_UP);
         /*robot.forward(0.5,0.05,true);
         robot.goToAbsolutePosition(1,0.6, robot.odo.getX(),SKYSTONE.FIELD_WIDTH-SKYSTONE.WALL_TO_FOUNDATION-SKYSTONE.FOUNDATION_LENGTH/2-0.07);
         robot.turn(0.6,0,false);
         robot.forward(0.5, -0.18, false);*/
         robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-3*SKYSTONE.SKYBRIDGE_LENGTH/4+0.1, SKYSTONE.FIELD_WIDTH/2+0.15, false);
+        robot.foundation.setPosition(robot.FOUNDATION_OPEN);
         robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-(SKYSTONE.START_TO_FOUNDATION-SKYSTONE.ROBOT_WIDTH/2+0.13), SKYSTONE.FIELD_WIDTH-SKYSTONE.WALL_TO_FOUNDATION-SKYSTONE.FOUNDATION_LENGTH/2+0.3, true);
         robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
-        sleep(500);
         robot.skyClamp1.setPosition(robot.SKYCLAMP_OPEN);
-        sleep(200);
+        sleep(100);
         robot.skyArm1.setPosition(robot.SKYARM1_UP);
         robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-3*SKYSTONE.SKYBRIDGE_LENGTH/4+0.1, SKYSTONE.FIELD_WIDTH/2+0.15, false);
         double secondBlockY = SKYSTONE.ROBOT_WIDTH/2+0.02;
@@ -114,14 +116,14 @@ public class M6_Red_Skystone_Auto  extends LinearOpMode {
             secondBlockY += SKYSTONE.STONE_LENGTH;
         }
         robot.strafe(1, SKYSTONE.FIELD_WIDTH/2+0.15-secondBlockY, true);
-        robot.approachStonesSensor(robot.sensorDistanceR,0.15,0.02,0.2);
+        robot.approachStonesSensor(robot.sensorDistanceR,0.15,0.03,0.3);
         robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
-        sleep(500);
+        sleep(300);
         robot.skyClamp1.setPosition(robot.SKYCLAMP_CLOSE);
-        sleep(200);
+        sleep(100);
         robot.skyArm1.setPosition(robot.SKYARM1_UP);
         robot.skyArm2.setPosition((robot.SKYARM2_DOWN+robot.SKYARM2_UP)/2);
-        sleep(700);
+        sleep(500);
         robot.skyArm2.setPosition(robot.SKYARM2_UP);
         robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-3*SKYSTONE.SKYBRIDGE_LENGTH/4+0.1, SKYSTONE.FIELD_WIDTH/2+0.15, false);
         robot.foundation.setPosition(robot.FOUNDATION_OPEN);
@@ -133,13 +135,16 @@ public class M6_Red_Skystone_Auto  extends LinearOpMode {
             robot.forward(1, 0.5, true);
             robot.arch(1, -0.21305, 0.401987, false);
             robot.forward(1, -0.08, false);
-            robot.foundation.setPosition(robot.FOUNDATION_OPEN);
         }
         robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
-        sleep(500);
         robot.skyClamp1.setPosition(robot.SKYCLAMP_OPEN);
-        sleep(200);
+        sleep(100);
         robot.skyArm1.setPosition(robot.SKYARM1_UP);
-        robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-3*SKYSTONE.SKYBRIDGE_LENGTH/4+0.1, SKYSTONE.FIELD_WIDTH/2+0.15, true);
+        robot.foundation.setPosition(robot.FOUNDATION_OPEN);
+        if(settings[1]){
+            robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH-SKYSTONE.SKYBRIDGE_LENGTH/4+0.05, SKYSTONE.FIELD_WIDTH/2+0.1, true);
+        }else {
+            robot.angleStrafeToAbsolutePosition(1.4, SKYSTONE.FIELD_WIDTH - 3 * SKYSTONE.SKYBRIDGE_LENGTH / 4 + 0.1, SKYSTONE.FIELD_WIDTH / 2 + 0.15, true);
+        }
     }
 }

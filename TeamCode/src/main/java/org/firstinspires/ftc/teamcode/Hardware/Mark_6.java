@@ -830,7 +830,7 @@ public class Mark_6 {
         double currentEncoderX = odo.middle.getCurrentPosition();
         double distanceTraveledX = middleDeadWheelCorrection*wheelCirc*(currentEncoderX-startEncoderX)/ticksPer;
         double distanceErrorX = meters*Math.cos(angle) - distanceTraveledX;
-        double lowestPower = 0.3;
+        double lowestPower = 0.4;
         double startTime = System.currentTimeMillis();
         while(Math.abs(Math.hypot(distanceErrorX, distanceErrorY)) > distanceAccuracy){
             angleStrafe(Range.clip(power*(lowestPower+Math.hypot(distanceErrorX, distanceErrorY)/meters), -1, 1), Math.atan2(distanceErrorY, distanceErrorX));
@@ -840,7 +840,7 @@ public class Mark_6 {
             currentEncoderY = (odo.left.getCurrentPosition()+odo.right.getCurrentPosition())/2;
             distanceTraveledY = wheelCirc*(currentEncoderY-startEncoderY)/ticksPer;
             distanceErrorY = meters*Math.sin(angle)-distanceTraveledY;
-            if(System.currentTimeMillis()-startTime > 2000){
+            if(System.currentTimeMillis()-startTime > 1500){
                 lowestPower = 0.2;
             }
             if(ln.isStopRequested()){
@@ -1056,8 +1056,12 @@ public class Mark_6 {
         boolean distanceReached = false;
         Double deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
         while (deltaDistance.isNaN()){
-            deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
-            forward(power);
+            if (sensor == sensorDistanceB) {
+                deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
+                forward(power);
+            }else{
+                forward(-power);
+            }
             if (ln.isStopRequested()){
                 return;
             }
@@ -1077,13 +1081,14 @@ public class Mark_6 {
                 }
             }else{
                 if(deltaDistance.isNaN()){
-                    forward(power);
+                    forward(-power);
                 }
                 if (sensor.getDistance(DistanceUnit.METER) - goalDistance > 0) {
-                    forward(0.5*power);
+                    forward(0.5*-power);
+
                 }
                 if (sensor.getDistance(DistanceUnit.METER) - goalDistance < 0) {
-                    forward(0.5*-power);
+                    forward(0.5*power);
                 }
             }
             if(Math.abs(sensor.getDistance(DistanceUnit.METER) - goalDistance) < goalDistanceAcc){
