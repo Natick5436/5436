@@ -52,8 +52,8 @@ public class Mark_6 {
     public double FOUNDATION_OPEN = 0.6;
     public double SKYARM1_DOWN = 0.5;
     public double SKYARM1_UP = 0;
-    public double SKYARM2_DOWN = 0.5;
-    public double SKYARM2_UP = 1;
+    public double SKYARM2_DOWN = 0.15;
+    public double SKYARM2_UP = 0.5;
     public double ROTATE_OUT = 0.85;
     public double ROTATE_MID = 0.5 ;
     public double ROTATE_IN = 0.18;
@@ -1101,6 +1101,8 @@ public class Mark_6 {
                 return;
             }
             ln.telemetry.addData("Distance: ", deltaDistance.doubleValue());
+            ln.telemetry.addData("Is blue side sensor: ", sensor.equals(sensorDistanceB));
+            ln.telemetry.addData("Is blue side ==",sensor == sensorDistanceB);
             ln.telemetry.update();
         }
         stopDrive();
