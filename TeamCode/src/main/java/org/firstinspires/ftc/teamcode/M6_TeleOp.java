@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -198,6 +199,8 @@ public class M6_TeleOp extends LinearOpMode {
             telemetry.addData("middle dead wheel: ", robot.odo.middle.getCurrentPosition());
             telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
             telemetry.addData("Heading", robot.getHeading());
+            telemetry.addData("RED Sensor status: ", ((RevColorSensorV3)robot.sensorDistanceR).status());
+            telemetry.addData("BLUE Sensor status: ", ((RevColorSensorV3)robot.sensorDistanceB).status());
             telemetry.addData("Distance to Object RED",robot.sensorDistanceR.getDistance(DistanceUnit.METER));
             telemetry.addData("Distance to Object BLUE",robot.sensorDistanceB.getDistance(DistanceUnit.METER));
             telemetry.addData("Lift Limit",liftLimit);

@@ -1065,6 +1065,8 @@ public class Mark_6 {
             if (ln.isStopRequested()){
                 return;
             }
+            ln.telemetry.addData("Distance: ", deltaDistance.doubleValue());
+            ln.telemetry.update();
         }
         while(!distanceReached){
             deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
