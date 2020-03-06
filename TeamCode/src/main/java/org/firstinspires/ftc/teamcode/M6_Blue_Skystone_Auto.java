@@ -130,7 +130,7 @@ public class M6_Blue_Skystone_Auto  extends LinearOpMode {
             robot.foundation.setPosition(robot.FOUNDATION_CLOSE);
             sleep(600);
             robot.arch(1, 0.21305, 0.087329, false);
-            robot.forward(0.7, 0.5, true);
+            robot.forward(0.7, 0.46, true);
             telemetry.addData("Forward is done", "Yes");
             telemetry.update();
             robot.arch(1, 0.21305, 0.401987, false);
