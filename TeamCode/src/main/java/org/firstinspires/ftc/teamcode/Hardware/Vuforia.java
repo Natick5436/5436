@@ -231,7 +231,7 @@ public class Vuforia extends Thread {
 
         com.vuforia.CameraDevice.getInstance().setField("opti-zoom", "opti-zoom-on");
 
-        com.vuforia.CameraDevice.getInstance().setField("zoom", "30");
+        com.vuforia.CameraDevice.getInstance().setField("zoom", "50");
 
         inited = true;
         while(!ln.opModeIsActive() && !ln.isStarted()){
@@ -306,23 +306,33 @@ public class Vuforia extends Thread {
             // express position (translation) of robot in inches.
             VectorF translation = lastLocation.getTranslation();
             skystonePosition = lastLocation.getTranslation();
-            translation1 = translation.get(1);
+           double translation1 = translation.get(1);
             /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                     translation.get(0), translation.get(1), translation.get(2));*/
             ln.telemetry.addData("y-position",translation.get(1));
             if (!ln.opModeIsActive() && redMode){
-                if (translation.get(1) < -80 && translation.get(1) > -120) {
+                /*if (translation.get(1) < -80 && translation.get(1) > -120) {
                     pos = 2;
                 }else {
+                    pos = 0;
+                }*/
+                if (Math.abs(translation1-translation.get(1)) < 40) {
+                    pos = 2;
+                }else{
                     pos = 0;
                 }
             }else{
                 if (!ln.opModeIsActive() && !redMode){
-                    if (translation.get(1) < -80 && translation.get(1) > -120) {
+                    if (Math.abs(translation1-translation.get(1)) < 40) {
+                        pos = 2;
+                    }else{
+                        pos = 0;
+                    }
+                   /* if (translation.get(1) < -90 && translation.get(1) > -160) {
                         pos = 2;
                     }else {
                         pos = 0;
-                    }
+                    }*/
                 }
             }
             /*if(translation.get(1) < -100){

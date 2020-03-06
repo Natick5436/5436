@@ -31,7 +31,7 @@ public class M6_TeleOp extends LinearOpMode {
     public void runOpMode()throws InterruptedException{
         robot.initialize(hardwareMap, 0, 0, 0,false);
         drivePower = 0.5;
-        fastMode = false;
+        fastMode = true;
         yDown = false;
         boolean armClose = true;
         aDown = false;
@@ -43,11 +43,11 @@ public class M6_TeleOp extends LinearOpMode {
         boolean clampClose = true;
 
         waitForStart();
-        robot.odo.start();
+        //robot.odo.start();
         while (opModeIsActive()) {
             //Drive System
             if(gamepad1.left_bumper){
-                robot.angleStrafe(0.25*Math.hypot(-gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x));
+                robot.angleStrafe(0.5*Math.hypot(-gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x));
                 bumperDown = true;
             }else if(gamepad1.right_bumper){
                 robot.angleStrafe(0.25*Math.hypot(gamepad1.right_stick_y, -gamepad1.right_stick_x), Math.atan2(gamepad1.right_stick_y, -gamepad1.right_stick_x));
@@ -192,21 +192,20 @@ public class M6_TeleOp extends LinearOpMode {
             if (gamepad2.y){
                 robot.extRotate.setPosition(robot.ROTATE_OUT);
             }
-
-            telemetry.addData("Velocities", "left: "+robot.odo.getVelocityL()+"    right: "+robot.odo.getVelocityR());
-            telemetry.addData("left dead wheel:", robot.odo.left.getCurrentPosition());
-            telemetry.addData("right dead wheel: ", robot.odo.right.getCurrentPosition());
-            telemetry.addData("middle dead wheel: ", robot.odo.middle.getCurrentPosition());
-            telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
-            telemetry.addData("Heading", robot.getHeading());
-            telemetry.addData("RED Sensor status: ", ((RevColorSensorV3)robot.sensorDistanceR).status());
-            telemetry.addData("BLUE Sensor status: ", ((RevColorSensorV3)robot.sensorDistanceB).status());
-            telemetry.addData("Distance to Object RED",robot.sensorDistanceR.getDistance(DistanceUnit.METER));
-            telemetry.addData("Distance to Object BLUE",robot.sensorDistanceB.getDistance(DistanceUnit.METER));
-            telemetry.addData("Lift Limit",liftLimit);
-            telemetry.addData("Lift Position",robot.lift.getCurrentPosition());
-            telemetry.addData("CurrentFoundation",robot.foundation.getPosition());
-            telemetry.update();
+            if(gamepad1.start) {
+                //telemetry.addData("Velocities", "left: "+robot.odo.getVelocityL()+"    right: "+robot.odo.getVelocityR());
+                telemetry.addData("left dead wheel:", robot.odo.left.getCurrentPosition());
+                telemetry.addData("right dead wheel: ", robot.odo.right.getCurrentPosition());
+                telemetry.addData("middle dead wheel: ", robot.odo.middle.getCurrentPosition());
+                //telemetry.addData("Position", "X: "+robot.odo.getX()+"Y: "+robot.odo.getY()+"Angle: "+robot.odo.getAngle());
+                telemetry.addData("Heading", robot.getHeading());
+                telemetry.addData("Distance to Object RED", robot.sensorDistanceR.getDistance(DistanceUnit.METER));
+                telemetry.addData("Distance to Object BLUE", robot.sensorDistanceB.getDistance(DistanceUnit.METER));
+                telemetry.addData("Lift Limit", liftLimit);
+                telemetry.addData("Lift Position", robot.lift.getCurrentPosition());
+                telemetry.addData("CurrentFoundation", robot.foundation.getPosition());
+                telemetry.update();
+            }
         }
     }
 }

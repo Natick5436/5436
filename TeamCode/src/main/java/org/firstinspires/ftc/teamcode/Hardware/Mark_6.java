@@ -52,8 +52,8 @@ public class Mark_6 {
     public double FOUNDATION_OPEN = 0.6;
     public double SKYARM1_DOWN = 0.5;
     public double SKYARM1_UP = 0;
-    public double SKYARM2_DOWN = 0.15;
-    public double SKYARM2_UP = 0.5;
+    public double SKYARM2_DOWN = 0.05;
+    public double SKYARM2_UP = 0.55;
     public double ROTATE_OUT = 0.85;
     public double ROTATE_MID = 0.5 ;
     public double ROTATE_IN = 0.18;
@@ -83,7 +83,7 @@ public class Mark_6 {
     public Odometry odo;
     double initialAngle;
 
-    final double angleAccuracy = 0.01;
+    final double angleAccuracy = 0.005;
     final double distanceAccuracy = 0.05;
 
     LinearOpMode ln;
@@ -342,9 +342,10 @@ public class Mark_6 {
         lF.setPower(-power);
         lB.setPower(-power);
     }
-    public void turn(double power, double targetAngle){
+    public void turn(double initialPower, double targetAngle){
         this.setStatus(Mark_5.Status.TURNING);
         double angle = getHeading();
+        double startingAngle = angle;
         double targetAngleDelta;
         boolean useCompassAngle = ACMath.compassAngleShorter(targetAngle, angle);
         if(useCompassAngle) {
@@ -359,14 +360,16 @@ public class Mark_6 {
         if (targetAngleDelta < 0)
             sw = false;
         int decreaseRate = 0;
+        double lowestPower = 0.2;
         while (targetAngleAbs >= angleAccuracy){
+            double power = initialPower*Math.abs(targetAngleAbs/(targetAngle-startingAngle)) + initialPower*lowestPower;
             //If change is negative, robot turns in negative direction
             if (targetAngleDelta < 0){
                 //Turn right
-                rF.setPower(-power / decreaseRate);
-                rB.setPower(-power / decreaseRate);
-                lF.setPower(power / decreaseRate);
-                lB.setPower(power / decreaseRate);
+                rF.setPower(-power);
+                rB.setPower(-power);
+                lF.setPower(power);
+                lB.setPower(power);
                 if(!sw){
                     decreaseRate++;
                 }
@@ -374,10 +377,10 @@ public class Mark_6 {
             }
             if (targetAngleDelta > 0){
                 //Turn left
-                lF.setPower(-power /  decreaseRate);
-                lB.setPower(-power /  decreaseRate);
-                rF.setPower(power / decreaseRate);
-                rB.setPower(power / decreaseRate);
+                lF.setPower(-power);
+                lB.setPower(-power);
+                rF.setPower(power);
+                rB.setPower(power);
                 if(sw){
                     decreaseRate++;
                 }
@@ -397,18 +400,15 @@ public class Mark_6 {
             ln.telemetry.addData("Compass Angle: ", useCompassAngle);
             ln.telemetry.update();
         }
-        rF.setPower(-rF.getPower());
-        rB.setPower(-rB.getPower());
-        lF.setPower(-lF.getPower());
-        lB.setPower(-lB.getPower());
         rF.setPower(0);
         rB.setPower(0);
         lF.setPower(0);
         lB.setPower(0);
     }
-    public void turn(double power, double targetAngle, boolean override){
+    public void turn(double initialPower, double targetAngle, boolean override){
         this.setStatus(Mark_5.Status.TURNING);
         double angle = getHeading();
+        double startingAngle = angle;
         double targetAngleDelta;
         if(override) {
             targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
@@ -422,22 +422,24 @@ public class Mark_6 {
         if (targetAngleDelta < 0)
             sw = false;
         int decreaseRate = 0;
+        double lowestPower = 0.2;
         while (targetAngleAbs >= angleAccuracy){
+            double power = initialPower*Math.abs(targetAngleAbs/(targetAngle-startingAngle)) + initialPower*lowestPower;
             if (targetAngleDelta < 0){
-                rF.setPower(-power / decreaseRate);
-                rB.setPower(-power / decreaseRate);
-                lF.setPower(power / decreaseRate);
-                lB.setPower(power / decreaseRate);
+                rF.setPower(-power);
+                rB.setPower(-power);
+                lF.setPower(power);
+                lB.setPower(power);
                 if(!sw){
                     decreaseRate++;
                 }
                 sw = true;
             }
             if (targetAngleDelta > 0){
-                lF.setPower(-power /  decreaseRate);
-                lB.setPower(-power /  decreaseRate);
-                rF.setPower(power / decreaseRate);
-                rB.setPower(power / decreaseRate);
+                lF.setPower(-power);
+                lB.setPower(-power);
+                rF.setPower(power);
+                rB.setPower(power);
                 if(sw){
                     decreaseRate++;
                 }
@@ -457,18 +459,15 @@ public class Mark_6 {
             ln.telemetry.addData("abs",targetAngleAbs);
             ln.telemetry.update();
         }
-        rF.setPower(-rF.getPower());
-        rB.setPower(-rB.getPower());
-        lF.setPower(-lF.getPower());
-        lB.setPower(-lB.getPower());
         rF.setPower(0);
         rB.setPower(0);
         lF.setPower(0);
         lB.setPower(0);
     }
-    public void odometryTurn(double power, double targetAngle, boolean override){
+    public void odometryTurn(double initialPower, double targetAngle, boolean override){
         this.setStatus(Mark_5.Status.TURNING);
         double angle = odo.getAngle();
+        double startingAngle = angle;
         double targetAngleDelta;
         if(override) {
             targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
@@ -482,22 +481,24 @@ public class Mark_6 {
         if (targetAngleDelta < 0)
             sw = false;
         int decreaseRate = 0;
+        double lowestPower = 0.2;
         while (targetAngleAbs >= angleAccuracy){
+            double power = initialPower*Math.abs(targetAngleAbs/(targetAngle-startingAngle)) + initialPower*lowestPower;
             if (targetAngleDelta < 0){
-                rF.setPower(-power / decreaseRate);
-                rB.setPower(-power / decreaseRate);
-                lF.setPower(power / decreaseRate);
-                lB.setPower(power / decreaseRate);
+                rF.setPower(-power);
+                rB.setPower(-power);
+                lF.setPower(power);
+                lB.setPower(power);
                 if(!sw){
                     decreaseRate++;
                 }
                 sw = true;
             }
             if (targetAngleDelta > 0){
-                lF.setPower(-power /  decreaseRate);
-                lB.setPower(-power /  decreaseRate);
-                rF.setPower(power / decreaseRate);
-                rB.setPower(power / decreaseRate);
+                lF.setPower(-power);
+                lB.setPower(-power);
+                rF.setPower(power);
+                rB.setPower(power);
                 if(sw){
                     decreaseRate++;
                 }
@@ -517,19 +518,16 @@ public class Mark_6 {
             ln.telemetry.addData("abs",targetAngleAbs);
             ln.telemetry.update();
         }
-        rF.setPower(-rF.getPower());
-        rB.setPower(-rB.getPower());
-        lF.setPower(-lF.getPower());
-        lB.setPower(-lB.getPower());
         rF.setPower(0);
         rB.setPower(0);
         lF.setPower(0);
         lB.setPower(0);
     }
 
-    public void odometryTurn(double power, double targetAngle){
+    public void odometryTurn(double initialPower, double targetAngle){
         this.setStatus(Mark_5.Status.TURNING);
         double angle = odo.getAngle();
+        double startingAngle = angle;
         double targetAngleDelta;
         if(ACMath.compassAngleShorter(targetAngle, angle)) {
             targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
@@ -543,22 +541,24 @@ public class Mark_6 {
         if (targetAngleDelta < 0)
             sw = false;
         int decreaseRate = 0;
+        double lowestPower = 0.2;
         while (targetAngleAbs >= angleAccuracy){
+            double power = initialPower*Math.abs(targetAngleAbs/(targetAngle-startingAngle)) + initialPower*lowestPower;
             if (targetAngleDelta < 0){
-                rF.setPower(-power / decreaseRate);
-                rB.setPower(-power / decreaseRate);
-                lF.setPower(power / decreaseRate);
-                lB.setPower(power / decreaseRate);
+                rF.setPower(-power);
+                rB.setPower(-power);
+                lF.setPower(power);
+                lB.setPower(power);
                 if(!sw){
                     decreaseRate++;
                 }
                 sw = true;
             }
             if (targetAngleDelta > 0){
-                lF.setPower(-power /  decreaseRate);
-                lB.setPower(-power /  decreaseRate);
-                rF.setPower(power / decreaseRate);
-                rB.setPower(power / decreaseRate);
+                lF.setPower(-power);
+                lB.setPower(-power);
+                rF.setPower(power);
+                rB.setPower(power);
                 if(sw){
                     decreaseRate++;
                 }
@@ -578,10 +578,6 @@ public class Mark_6 {
             ln.telemetry.addData("abs",targetAngleAbs);
             ln.telemetry.update();
         }
-        rF.setPower(-rF.getPower());
-        rB.setPower(-rB.getPower());
-        lF.setPower(-lF.getPower());
-        lB.setPower(-lB.getPower());
         rF.setPower(0);
         rB.setPower(0);
         lF.setPower(0);
@@ -643,7 +639,7 @@ public class Mark_6 {
                 rB.setPower(-newPower - turnOffset);
             }
             if(Math.abs(angleError) > maxCorrectionAngle/2){
-                turn(0.5, startAngle);
+                turn(0.7, startAngle);
             }
             currentEncoder = odo.middle.getCurrentPosition();
             distanceTraveled = middleDeadWheelCorrection*wheelCirc*(currentEncoder-startEncoder)/ticksPer;
@@ -681,7 +677,7 @@ public class Mark_6 {
                     rB.setPower(-newPower - turnOffset);
                 }
                 if(Math.abs(angleError) > maxCorrectionAngle/2){
-                    turn(0.5, startAngle);
+                    turn(0.7, startAngle);
                 }
                 currentEncoder = odo.middle.getCurrentPosition();
                 distanceTraveled = 66.17647058823529*0.0508*Math.PI*(currentEncoder-startEncoder)/8192;
@@ -1052,60 +1048,79 @@ public class Mark_6 {
         imu.getPosition();
         return ACMath.toStandardAngle(Math.toRadians(angles.firstAngle)+initialAngle);
     }
-    public void approachStonesSensor(DistanceSensor sensor, double goalDistance, double goalDistanceAcc, double power)throws InterruptedException{
+    public void approachStonesSensor(DistanceSensor sensor, double goalDistance, double goalDistanceAcc, double power, boolean seizeSkystone)throws InterruptedException{
         boolean distanceReached = false;
         Double deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
+        double powerLimit = power;
+        if (!seizeSkystone){
         while (deltaDistance.isNaN()){
             if (sensor == sensorDistanceB) {
                 deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
-                forward(power);
+                forward(powerLimit);
             }else{
-                forward(-power);
+                forward(-powerLimit);
             }
             if (ln.isStopRequested()){
                 return;
             }
+            deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
             ln.telemetry.addData("Distance: ", deltaDistance.doubleValue());
             ln.telemetry.update();
         }
-        while(!distanceReached){
+        distanceReached = false;
+        while(!distanceReached) {
             deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
-            distanceReached = false;
-            if (sensor == sensorDistanceB){
-                if(deltaDistance.isNaN()){
+            if (sensor == sensorDistanceB) {
+                if (deltaDistance.isNaN()) {
                     forward(power);
                 }
                 if (sensor.getDistance(DistanceUnit.METER) - goalDistance > 0) {
-                    forward(0.5*power);
+                    forward(0.5 * powerLimit);
                 }
                 if (sensor.getDistance(DistanceUnit.METER) - goalDistance < 0) {
-                    forward(0.5*-power);
+                    forward(0.5 * -powerLimit);
                 }
-            }else{
-                if(deltaDistance.isNaN()){
+            } else {
+                if (deltaDistance.isNaN()) {
                     forward(-power);
                 }
                 if (sensor.getDistance(DistanceUnit.METER) - goalDistance > 0) {
-                    forward(0.5*-power);
+                    forward(0.5 * -powerLimit);
 
                 }
                 if (sensor.getDistance(DistanceUnit.METER) - goalDistance < 0) {
-                    forward(0.5*power);
+                    forward(0.5 * powerLimit);
                 }
             }
-            if(Math.abs(sensor.getDistance(DistanceUnit.METER) - goalDistance) < goalDistanceAcc){
+
+            if (Math.abs(sensor.getDistance(DistanceUnit.METER) - goalDistance) < goalDistanceAcc) {
                 distanceReached = true;
             }
-            if (distanceReached){
-               stopDrive();
+            if (distanceReached) {
+                stopDrive();
             }
-            if (ln.isStopRequested()){
+            if (ln.isStopRequested()) {
                 return;
             }
+
             ln.telemetry.addData("Distance: ", deltaDistance.doubleValue());
             ln.telemetry.addData("Is blue side sensor: ", sensor.equals(sensorDistanceB));
-            ln.telemetry.addData("Is blue side ==",sensor == sensorDistanceB);
+            ln.telemetry.addData("Is blue side ==", sensor == sensorDistanceB);
             ln.telemetry.update();
+        }
+        }else{
+            deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
+                while (deltaDistance.isNaN()) {
+                    if(sensor == sensorDistanceB) {
+                        forward(0.8 * power);
+                    }else{
+                        forward(-0.8 * power);
+                    }
+                    deltaDistance = new Double(sensor.getDistance(DistanceUnit.METER));
+                    ln.telemetry.addData("Distance: ", deltaDistance.doubleValue());
+                    ln.telemetry.update();
+                }
+                stopDrive();
         }
         stopDrive();
     }
