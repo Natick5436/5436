@@ -22,7 +22,7 @@ public class M6_Blue_Skystone_Auto  extends LinearOpMode {
 
         t1.redMode = true;
         int itemSelected = 0;
-        String[] settingNames = {"1 Skystone foundation(true = yes, false = 2 skystones", "Park skybridge side(false) or wall side (true): "};
+        String[] settingNames = {"1 Skystone foundation(true = yes, false = 2 skystones", "Park skybridge side(false) or wall side (true): ", "3rd skystone?"};
         boolean[] settings = new boolean[settingNames.length];
         boolean active = false;
         while (!isStarted() && !isStopRequested()) {
@@ -139,7 +139,7 @@ public class M6_Blue_Skystone_Auto  extends LinearOpMode {
             sleep(300);
         }else {
             robot.angleStrafeToAbsolutePosition(2, 3 * SKYSTONE.SKYBRIDGE_LENGTH / 4 - 0.25, SKYSTONE.FIELD_WIDTH / 2 + 0.15, false);
-            double secondBlockY = SKYSTONE.ROBOT_WIDTH / 2 + 0.02;
+            double secondBlockY = SKYSTONE.ROBOT_WIDTH / 2 + 0.03;
             for (int i = 1; i < finalPos; i++) {
                 secondBlockY += SKYSTONE.STONE_LENGTH;
             }
@@ -163,6 +163,40 @@ public class M6_Blue_Skystone_Auto  extends LinearOpMode {
             sleep(100);
             robot.skyClamp2.setPosition(robot.SKYCLAMP_OPEN);
             robot.skyArm2.setPosition(robot.SKYARM2_UP);
+
+            if(settings[2]) {
+                robot.angleStrafeToAbsolutePosition(2, 3 * SKYSTONE.SKYBRIDGE_LENGTH / 4 - 0.25, SKYSTONE.FIELD_WIDTH / 2 + 0.15, false);
+                double thirdBlockY = SKYSTONE.ROBOT_WIDTH / 2 + 0.03;
+                if(finalPos != 3) {
+                    for (int i = 1; i < 6; i++) {
+                        thirdBlockY += SKYSTONE.STONE_LENGTH;
+                    }
+                }else{
+                    for (int i = 1; i < 5; i++) {
+                        thirdBlockY += SKYSTONE.STONE_LENGTH;
+                    }
+                }
+                if (Math.abs(robot.getHeading() - 0) > 0.2) {
+                    robot.turn(0.3, 0, false);
+                }
+                robot.strafe(1, SKYSTONE.FIELD_WIDTH / 2 + 0.15 - thirdBlockY, true);
+                robot.approachStonesSensor(robot.sensorDistanceB, 0.2, 0.03, 0.25, true);
+                robot.skyArm2.setPosition(robot.SKYARM2_DOWN);
+                sleep(700);
+                robot.skyClamp2.setPosition(robot.SKYCLAMP_CLOSE);
+                sleep(500);
+                robot.skyArm2.setPosition(robot.SKYARM2_UP);
+                robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
+                sleep(800);
+                robot.skyArm1.setPosition(robot.SKYARM1_UP);
+                robot.angleStrafeToAbsolutePosition(2, 3 * SKYSTONE.SKYBRIDGE_LENGTH / 4 - 0.15, SKYSTONE.FIELD_WIDTH / 2 + 0.15, false);
+                robot.foundation.setPosition(robot.FOUNDATION_OPEN);
+                robot.angleStrafeToAbsolutePosition(2, 0.8, SKYSTONE.FIELD_WIDTH/2+0.4, true);
+                robot.skyArm2.setPosition(robot.SKYARM2_DOWN);
+                sleep(100);
+                robot.skyClamp2.setPosition(robot.SKYCLAMP_OPEN);
+                robot.skyArm2.setPosition(robot.SKYARM2_UP);
+            }
         }
         if(settings[1]){
             robot.angleStrafeToAbsolutePosition(1, SKYSTONE.SKYBRIDGE_LENGTH / 4, SKYSTONE.FIELD_WIDTH / 2 + 0.05, true);
