@@ -57,7 +57,7 @@ public class Mark_6 {
     public double ROTATE_OUT = 0.85;
     public double ROTATE_MID = 0.5 ;
     public double ROTATE_IN = 0.18;
-    public double OUT_GRAB = 0.45;
+    public double OUT_GRAB = 0.35;
     public double OUT_RELEASE = 0.0;
 
     BNO055IMU imu;
@@ -349,9 +349,21 @@ public class Mark_6 {
         double targetAngleDelta;
         boolean useCompassAngle = ACMath.compassAngleShorter(targetAngle, angle);
         if(useCompassAngle) {
-            targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+            if(Math.abs(targetAngle-0) < 2*distanceAccuracy){
+                targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+                useCompassAngle = false;
+            }else {
+                targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+                useCompassAngle = true;
+            }
         }else{
-            targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+            if(Math.abs(targetAngle-Math.PI) < 2*distanceAccuracy){
+                targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+                useCompassAngle = true;
+            }else {
+                targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+                useCompassAngle = false;
+            }
         }
         double targetAngleAbs = Math.abs(targetAngleDelta);
         boolean sw = false;
@@ -529,10 +541,23 @@ public class Mark_6 {
         double angle = odo.getAngle();
         double startingAngle = angle;
         double targetAngleDelta;
-        if(ACMath.compassAngleShorter(targetAngle, angle)) {
-            targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+        boolean useCompassAngle = ACMath.compassAngleShorter(targetAngle, angle);
+        if(useCompassAngle) {
+            if(Math.abs(targetAngle-0) < 2*distanceAccuracy){
+                targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+                useCompassAngle = false;
+            }else {
+                targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+                useCompassAngle = true;
+            }
         }else{
-            targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+            if(Math.abs(targetAngle-Math.PI) < 2*distanceAccuracy){
+                targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
+                useCompassAngle = true;
+            }else {
+                targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
+                useCompassAngle = false;
+            }
         }
         double targetAngleAbs = Math.abs(targetAngleDelta);
         boolean sw = false;
@@ -565,7 +590,7 @@ public class Mark_6 {
                 sw = false;
             }
             angle = odo.getAngle();
-            if(ACMath.compassAngleShorter(targetAngle, angle)) {
+            if(useCompassAngle) {
                 targetAngleDelta = ACMath.toCompassAngle(targetAngle) - ACMath.toCompassAngle(angle);
             }else{
                 targetAngleDelta = ACMath.toStandardAngle(targetAngle) - ACMath.toStandardAngle(angle);
@@ -757,6 +782,7 @@ public class Mark_6 {
                 lB.setPower(-lB.getPower());
                 rF.setPower(-rF.getPower());
                 rB.setPower(-rB.getPower());
+                stopDrive();
             }
         }else{
             while (error < 0) {
@@ -794,9 +820,9 @@ public class Mark_6 {
                 lB.setPower(-lB.getPower());
                 rF.setPower(-rF.getPower());
                 rB.setPower(-rB.getPower());
+                stopDrive();
             }
         }
-        stopDrive();
     }
 
     //angle strafe allows the robot to move in any direction without turning
@@ -852,6 +878,15 @@ public class Mark_6 {
         stopDrive();
     }
 
+    public void turningStrafe(double strafePower, double angle, double turnPower){
+        this.setStatus(Mark_5.Status.TURNING);
+        double strafeProportion = Math.abs(strafePower/(Math.abs(strafePower)+Math.abs(turnPower)));
+        double turnProportion = Math.abs(turnPower/(strafePower+turnPower));
+        lF.setPower(strafeProportion*strafePower*Math.sin(angle + Math.PI/4)-turnProportion*turnPower);
+        lB.setPower(strafeProportion*strafePower*Math.sin(angle - Math.PI/4)-turnProportion*turnPower);
+        rB.setPower(strafeProportion*strafePower*Math.sin(angle + Math.PI/4)+turnProportion*turnPower);
+        rF.setPower(strafeProportion*strafePower*Math.sin(angle - Math.PI/4)+turnProportion*turnPower);
+    }
     //Can turn and strafe at the same time to save time in auto
     //This is the only function that REQUIRES odometry tracking (all of the functions require deadwheels)
     public void turningStrafe(double power, double targetHeading, double movementAngle, double meters) {

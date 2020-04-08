@@ -47,10 +47,14 @@ public class M6_TeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             //Drive System
             if(gamepad1.left_bumper){
-                robot.angleStrafe(0.5*Math.hypot(-gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x));
+                if(Math.abs(gamepad1.right_stick_x)<0.05) {
+                    robot.angleStrafe(Math.hypot(-gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x));
+                }else{
+                    robot.turningStrafe(Math.hypot(gamepad1.left_stick_y, gamepad1.left_stick_x), Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x), -gamepad1.right_stick_x);
+                }
                 bumperDown = true;
             }else if(gamepad1.right_bumper){
-                robot.angleStrafe(0.25*Math.hypot(gamepad1.right_stick_y, -gamepad1.right_stick_x), Math.atan2(gamepad1.right_stick_y, -gamepad1.right_stick_x));
+                robot.angleStrafe(0.35*Math.hypot(gamepad1.right_stick_y, -gamepad1.right_stick_x), Math.atan2(gamepad1.right_stick_y, -gamepad1.right_stick_x));
                 bumperDown = true;
             }else if((gamepad1.right_trigger-gamepad1.left_trigger) != 0){
                 robot.strafe(drivePower*(gamepad1.right_trigger-gamepad1.left_trigger));
@@ -85,7 +89,7 @@ public class M6_TeleOp extends LinearOpMode {
                 telemetry.addData("Init Encoder",encoderInit);
             }
             if(fastMode){
-                drivePower = 1;
+                drivePower = 0.9;
                 telemetry.addData("!FAST MODE!", "!HOLD YOUR HORSES! (click both stick buttons to cancel)");
             }else{
                 drivePower = 0.5;
@@ -146,10 +150,10 @@ public class M6_TeleOp extends LinearOpMode {
             }else{
                 robot.skyArm1.setPosition(robot.SKYARM1_DOWN);
             }
-            if(!aDown && gamepad1.a){
+            if(!aDown && gamepad1.back){
                 arm2Close = !arm2Close;
                 aDown = true;
-            }else if(!gamepad1.a){
+            }else if(!gamepad1.back){
                 aDown = false;
             }
             if (arm2Close){

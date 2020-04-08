@@ -36,6 +36,9 @@ public class Vuforia extends Thread {
     private static final boolean PHONE_IS_PORTRAIT = false;
     public boolean exit = false;
     public boolean zoom = false;
+    public double firstX;
+    public boolean firstRun = true;
+    public int approach= 1;
 
 
     /*
@@ -231,9 +234,12 @@ public class Vuforia extends Thread {
 
         com.vuforia.CameraDevice.getInstance().setField("opti-zoom", "opti-zoom-on");
 
-        com.vuforia.CameraDevice.getInstance().setField("zoom", "50");
+        com.vuforia.CameraDevice.getInstance().setField("zoom", "45");
 
         inited = true;
+        /*if (!ln.opModeIsActive() && !ln.isStarted()){
+           firstX = updateVuforiaFirst();
+        }*/
         while(!ln.opModeIsActive() && !ln.isStarted()){
             updateVuforia();
         }
@@ -272,11 +278,11 @@ public class Vuforia extends Thread {
         return inited;
     }
     //Vuforia methods
-    public int pos;
-    public int getPos(){
+    public double pos;
+    public double getPos(){
         return pos;
     }
-    public void updateVuforia(){
+    public double updateVuforia(){
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
         skystone = false;
@@ -306,40 +312,31 @@ public class Vuforia extends Thread {
             // express position (translation) of robot in inches.
             VectorF translation = lastLocation.getTranslation();
             skystonePosition = lastLocation.getTranslation();
-           double translation1 = translation.get(1);
+            if (firstRun == true) {
+                translation1 = translation.get(1);
+                firstRun = false;
+                return translation1;
+            }else {
             /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                     translation.get(0), translation.get(1), translation.get(2));*/
-            ln.telemetry.addData("y-position",translation.get(1));
-            if (!ln.opModeIsActive() && redMode){
-                /*if (translation.get(1) < -80 && translation.get(1) > -120) {
-                    pos = 2;
-                }else {
-                    pos = 0;
-                }*/
-                if (Math.abs(translation1-translation.get(1)) < 40) {
-                    pos = 2;
-                }else{
-                    pos = 0;
-                }
-            }else{
-                if (!ln.opModeIsActive() && !redMode){
-                    if (Math.abs(translation1-translation.get(1)) < 40) {
+                ln.telemetry.addData("y-position", translation.get(1));
+                ln.telemetry.addData("diff", translation1 - translation.get(1));
+                if (!ln.opModeIsActive() && redMode) {
+                    if (Math.abs(translation1 - translation.get(1)) < 7) {
                         pos = 2;
-                    }else{
+                    } else{
                         pos = 0;
                     }
-                   /* if (translation.get(1) < -90 && translation.get(1) > -160) {
-                        pos = 2;
-                    }else {
-                        pos = 0;
-                    }*/
+                } else {
+                    if (!ln.opModeIsActive() && !redMode) {
+                        if (Math.abs(translation1 - translation.get(1)) < 7) {
+                            pos = 2;
+                        } else {
+                            pos = 0;
+                        }
+                    }
                 }
             }
-            /*if(translation.get(1) < -100){
-                pos = 2;
-            }else if (translation.get(1)> -100){
-                pos = 3;
-            }*/
             ln.telemetry.addData("pos",pos);
 
             // express the rotation of the robot in degrees.
@@ -355,6 +352,57 @@ public class Vuforia extends Thread {
             }
         }
         ln.telemetry.update();
+        return pos;
+    }
+    public double updateVuforiaFirst(){
+        // check all the trackable targets to see which one (if any) is visible.
+        targetVisible = false;
+        skystone = false;
+        for (VuforiaTrackable trackable : allTrackables) {
+            if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                if (trackable.getName().equals("Stone Target")){
+                    skystone = true;
+                }else {
+                    skystone = false;
+                }
+                ln.telemetry.addData("Visible Target", trackable.getName());
+                ln.telemetry.addData("isSkystone", skystone);
+                targetVisible = true;
+
+
+                // getUpdatedRobotLocation() will return null if no new information is available since
+                // the last time that call was made, or if the trackable is not currently visible.
+                OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
+                if (robotLocationTransform != null) {
+                    lastLocation = robotLocationTransform;
+                }
+                break;
+            }
+        }
+        // Provide feedback as to where the robot is located (if we know).
+        if (targetVisible) {
+            // express position (translation) of robot in inches.
+            VectorF translation = lastLocation.getTranslation();
+            skystonePosition = lastLocation.getTranslation();
+            /*ln.telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
+                    translation.get(0), translation.get(1), translation.get(2));*/
+            ln.telemetry.addData("y-position",translation.get(1));
+            ln.telemetry.addData("firstX",firstX);
+            ln.telemetry.addData("pos",pos);
+
+            // express the rotation of the robot in degrees.
+            Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
+            skystoneOrientation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
+            ln.telemetry.addData("diff",translation2-translation1);
+            // ln.telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+        }
+        else {
+            if (!targetVisible) {
+                ln.telemetry.addData("Visible Target", "none");
+            }
+        }
+        ln.telemetry.update();
+        return translation1;
     }
     public boolean isSkystone(){
         updateVuforia();
