@@ -96,8 +96,8 @@ public class Mark_6 {
         lB = hardwareMap.dcMotor.get("lB");
         rF = hardwareMap.dcMotor.get("rF");
         rB = hardwareMap.dcMotor.get("rB");
-        intakeR = hardwareMap.dcMotor.get("rightIntake");
-        intakeL = hardwareMap.dcMotor.get("leftIntake");
+        intakeR = hardwareMap.dcMotor.get("intakeR");
+        intakeL = hardwareMap.dcMotor.get("intakeL");
         lift = hardwareMap.dcMotor.get("lift");
         misc = hardwareMap.dcMotor.get("misc");
 
