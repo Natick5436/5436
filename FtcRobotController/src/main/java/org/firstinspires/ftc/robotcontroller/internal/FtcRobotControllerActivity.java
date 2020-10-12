@@ -55,6 +55,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.PopupMenu;
@@ -123,8 +124,14 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @SuppressWarnings("WeakerAccess")
-public class FtcRobotControllerActivity extends Activity
-  {
+public class FtcRobotControllerActivity extends Activity {
+  public static FtcRobotControllerActivity activity;
+  public static int imageVisibility = View.VISIBLE;
+  public static void setImageVisibility(int v){
+    ImageView image = (ImageView) FtcRobotControllerActivity.activity.findViewById(R.id.fieldimage);
+    image.setVisibility(v);
+  }
+
   public static final String TAG = "RCActivity";
   public String getTag() { return TAG; }
 
@@ -196,7 +203,6 @@ public class FtcRobotControllerActivity extends Activity
   @Override
   protected void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
-
     if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
       UsbDevice usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
       RobotLog.vv(TAG, "ACTION_USB_DEVICE_ATTACHED: %s", usbDevice.getDeviceName());
@@ -255,6 +261,7 @@ public class FtcRobotControllerActivity extends Activity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    activity = this;
 
     if (enforcePermissionValidator()) {
       return;

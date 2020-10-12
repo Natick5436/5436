@@ -13,6 +13,12 @@ public class Waypoint {
         type=Type.BASE;
         time = -1;
     }
+    public Waypoint(double x, double y){
+        this.x=x;
+        this.y=y;
+        type=Type.BASE;
+        time = -1;
+    }
     public Waypoint(double x, double y, Type type){
         this.x=x;
         this.y=y;

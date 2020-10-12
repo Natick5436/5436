@@ -1,11 +1,15 @@
 package org.firstinspires.ftc.teamcode.Math;
 
+import org.firstinspires.ftc.teamcode.Hardware.Mecanum_Drive;
+
 public class PurePursuitPath {
 
     private Waypoint[] baseWaypoints;
-    private Waypoint[] pathWaypoints;
+    public Waypoint[] pathWaypoints;
     private double lookAheadDistance;
     private double pathTime;
+    //has to be less that one
+    private static final double overLookAheadCorrection = 0.99;
 
     //Constructors
     public PurePursuitPath(){
@@ -13,13 +17,23 @@ public class PurePursuitPath {
         for(int i=0; i<baseWaypoints.length; i++){
             baseWaypoints[i]= new Waypoint(Math.cos(i*Math.PI/4), Math.sin(i*Math.PI/4), Waypoint.Type.BASE);
         }
-        this.lookAheadDistance = averageDistanceBetweenWaypoints(this.baseWaypoints)/4;
+        double lookAheadDistance = averageDistanceBetweenWaypoints(this.baseWaypoints)/4;
+        if(lookAheadDistance >= smallestDistance()/2){
+            this.lookAheadDistance=overLookAheadCorrection*smallestDistance()/2;
+        }else{
+            this.lookAheadDistance = lookAheadDistance;
+        }
         calculatePath();
         pathTime = -1;
     }
     public PurePursuitPath(Waypoint[] baseWaypoints){
         this.baseWaypoints = baseWaypoints;
-        this.lookAheadDistance = averageDistanceBetweenWaypoints(this.baseWaypoints)/4;
+        double lookAheadDistance = averageDistanceBetweenWaypoints(this.baseWaypoints)/4;
+        if(lookAheadDistance >= smallestDistance()/2){
+            this.lookAheadDistance=overLookAheadCorrection*smallestDistance()/2;
+        }else{
+            this.lookAheadDistance = lookAheadDistance;
+        }
         calculatePath();
         pathTime = -1;
     }
@@ -33,9 +47,20 @@ public class PurePursuitPath {
 
     public PurePursuitPath(Waypoint[] baseWaypoints, double lookAheadDistance){
         this.baseWaypoints = baseWaypoints;
-        this.lookAheadDistance=lookAheadDistance;
+        if(lookAheadDistance >= smallestDistance()/2){
+            this.lookAheadDistance=overLookAheadCorrection*smallestDistance()/2;
+        }else{
+            this.lookAheadDistance=lookAheadDistance;
+        }
         calculatePath();
         pathTime = -1;
+    }
+    public double smallestDistance(){
+        double minimum = baseWaypoints[0].distanceFrom(baseWaypoints[1]);
+        for(int i=1; i<baseWaypoints.length-1; i++){
+            minimum = Math.min(minimum, baseWaypoints[i].distanceFrom(baseWaypoints[i+1]));
+        }
+        return minimum;
     }
     public void calculatePath(){
         pathWaypoints = new Waypoint[2*baseWaypoints.length-2];
@@ -55,7 +80,33 @@ public class PurePursuitPath {
         double sumTime = 0;
         pathWaypoints[0].setTime(0);
         for(int i=0; i<pathWaypoints.length-1; i++){
-            double timeToNext = universalDistanceToNext(0)/velocity;
+            double timeToNext = universalDistanceToNext(i)/velocity;
+            sumTime += timeToNext;
+            pathWaypoints[i+1].setTime(sumTime);
+        }
+        pathTime = sumTime;
+    }
+    public void mapTimes(double velocity, Mecanum_Drive robot){
+        double sumTime = 0;
+        pathWaypoints[0].setTime(0);
+        for(int i=0; i<pathWaypoints.length-1; i++){
+            double timeToNext;
+            if(pathWaypoints[i].getType() != Waypoint.Type.CURVE_START){
+                if(Math.abs(velocity)<robot.getMotorMaxAngularVelocity()*robot.getWheelRadius()) {
+                    timeToNext = universalDistanceToNext(i) / velocity;
+                }else{
+                    timeToNext = universalDistanceToNext(i) / (robot.getMotorMaxAngularVelocity()*robot.getWheelRadius());
+                }
+            }else{
+                double angleTended = (pathWaypoints[i+1].angleTo(pathWaypoints[i+2])-pathWaypoints[i].angleFrom(pathWaypoints[i-1]));
+                double angularVelocity = angleTended/(universalDistanceToNext(i)/velocity);
+                if(robot.getMotorMaxAngularVelocity() >= (Math.abs(velocity)+Math.abs(0.5*(robot.getLENGTH_X()+robot.getLENGTH_Y())*angularVelocity))/robot.getWheelRadius()){
+                    timeToNext = universalDistanceToNext(i)/velocity;
+                }else{
+                    double tempVelocity = robot.getMotorMaxAngularVelocity()*robot.getWheelRadius()/(1+Math.abs(0.5*(robot.getLENGTH_X()+robot.getLENGTH_Y())*angularVelocity)/velocity);
+                    timeToNext = universalDistanceToNext(i)/tempVelocity;
+                }
+            }
             sumTime += timeToNext;
             pathWaypoints[i+1].setTime(sumTime);
         }
@@ -65,21 +116,30 @@ public class PurePursuitPath {
     //Access Functions
     public double xOfTime(double time){
         int i=0;
-        while(pathWaypoints[i].getTime() > time && i<pathWaypoints.length-1){
+        while(pathWaypoints[i].getTime() <= time && i<pathWaypoints.length-1){
             i++;
         }
+        i--;
         if(i>=pathWaypoints.length-1) {
             return pathWaypoints[pathWaypoints.length - 1].getX();
         }else if(pathWaypoints[i].getType() == Waypoint.Type.CURVE_START){
-            //phi is the difference in the angle between the two straight lines before and after the curve
-            double phi = pathWaypoints[i].angleTo(pathWaypoints[i-1])-pathWaypoints[i].angleTo(pathWaypoints[i+1]);
-            double radius = lookAheadDistance*Math.tan(phi/2);
-            //theta is the angle tended by the robot in the time specified
-            double theta = (Math.PI-phi)*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
-            if(theta%Math.PI != 0) {
-                return pathWaypoints[i].getX() + (radius * Math.sin(theta) / Math.cos(theta / 2)) * Math.cos((pathWaypoints[i].angleFrom(pathWaypoints[i - 1]) + theta) / 2);
+            double thetaInitial = pathWaypoints[i].angleFrom(pathWaypoints[i-1]);
+            double thetaFinal = pathWaypoints[i+1].angleTo(pathWaypoints[i+2]);
+            double change;
+            if(ACMath.compassAngleShorter(thetaInitial, thetaFinal)){
+                change = ACMath.toCompassAngle(thetaFinal)-ACMath.toCompassAngle(thetaInitial);
             }else{
-                return pathWaypoints[i].getX() + (radius*2) * Math.cos((pathWaypoints[i].angleFrom(pathWaypoints[i - 1]) + theta) / 2);
+                change = ACMath.toStandardAngle(thetaFinal) - ACMath.toStandardAngle(thetaInitial);
+            }
+            double deltaTheta = change*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            if (change == 0.0) {
+                return pathWaypoints[i].getX() + Math.cos(pathWaypoints[i].angleTo(pathWaypoints[i+1]))*universalDistanceToNext(i)*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            } else if (change > 0) {
+                double radius = lookAheadDistance / Math.tan(change/2);
+                return pathWaypoints[i].getX() + radius * Math.cos(thetaInitial + Math.PI / 2) - radius * Math.cos(thetaInitial + deltaTheta + Math.PI / 2);
+            } else {
+                double radius = lookAheadDistance / Math.tan(change/2);
+                return pathWaypoints[i].getX() - radius * Math.cos(thetaInitial - Math.PI / 2) + radius * Math.cos(thetaInitial + deltaTheta - Math.PI / 2);
             }
         }else{
             return pathWaypoints[i].getX() + Math.cos(pathWaypoints[i].angleTo(pathWaypoints[i+1]))*universalDistanceToNext(i)*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
@@ -87,70 +147,93 @@ public class PurePursuitPath {
     }
     public double xPrimeOfTime(double time){
         int i=0;
-        while(pathWaypoints[i].getTime() > time && i<pathWaypoints.length-1){
+        while(pathWaypoints[i].getTime() <= time && i<pathWaypoints.length-1){
             i++;
         }
+        i--;
         if(i>=pathWaypoints.length-1){
             return Math.cos(pathWaypoints[pathWaypoints.length-2].angleTo(pathWaypoints[pathWaypoints.length-1]))*universalDistanceToNext(pathWaypoints.length-2)/(pathWaypoints[pathWaypoints.length-1].getTime()-pathWaypoints[pathWaypoints.length-1].getTime());
         }else if(pathWaypoints[i].getType()==Waypoint.Type.CURVE_START){
-            //phi is the difference in the angle between the two straight lines before and after the curve
-            double phi = pathWaypoints[i].angleTo(pathWaypoints[i-1])-pathWaypoints[i].angleTo(pathWaypoints[i+1]);
-            double radius = lookAheadDistance*Math.tan(phi/2);
-            double C = (Math.PI-phi)/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
-            //theta is the angle tended by the robot in the time specified
-            double theta = C*(time-pathWaypoints[i].getTime());
-            double initialHeading = pathWaypoints[i].angleFrom(pathWaypoints[i - 1]);
-            double common = Math.sin(theta)/Math.cos(theta/2);
-            return C*radius*((Math.cos(theta)/Math.cos(theta/2)+Math.tan(theta/2)*common/2)*Math.cos((initialHeading+theta)/2)-
-                                    Math.sin((initialHeading+theta)/2)*common/2);
+            double thetaInitial = pathWaypoints[i].angleFrom(pathWaypoints[i-1]);
+            double thetaFinal = pathWaypoints[i+1].angleTo(pathWaypoints[i+2]);
+            double change;
+            if(ACMath.compassAngleShorter(thetaInitial, thetaFinal)){
+                change = ACMath.toCompassAngle(thetaFinal)-ACMath.toCompassAngle(thetaInitial);
+            }else{
+                change = ACMath.toStandardAngle(thetaFinal) - ACMath.toStandardAngle(thetaInitial);
+            }
+            double deltaTheta = change*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            if(change == 0.0){
+                return Math.cos(pathWaypoints[i].angleTo(pathWaypoints[i+1]))*universalDistanceToNext(i)/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            }else if(change>0){
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return radius*(change/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime()))*Math.sin(thetaInitial+deltaTheta+Math.PI/2);
+            }else{
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return -radius*(change/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime()))*Math.sin(thetaInitial+deltaTheta-Math.PI/2);
+            }
         }else{
             return Math.cos(pathWaypoints[i].angleTo(pathWaypoints[i+1]))*universalDistanceToNext(i)/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
         }
     }
     public double xDoublePrimeOfTime(double time){
         int i=0;
-        while(pathWaypoints[i].getTime() > time && i<pathWaypoints.length-1){
+        while(pathWaypoints[i].getTime() <= time && i<pathWaypoints.length-1){
             i++;
         }
+        i--;
         if(i>=pathWaypoints.length-1){
             return 0;
         }else if(pathWaypoints[i].getType()==Waypoint.Type.CURVE_START){
-            //phi is the difference in the angle between the two straight lines before and after the curve
-            double phi = pathWaypoints[i].angleTo(pathWaypoints[i-1])-pathWaypoints[i].angleTo(pathWaypoints[i+1]);
-            double radius = lookAheadDistance*Math.tan(phi/2);
-            double C = (Math.PI-phi)/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
-            //theta is the angle tended by the robot in the time specified
-            double theta = C*(time-pathWaypoints[i].getTime());
-            double initialHeading = pathWaypoints[i].angleFrom(pathWaypoints[i - 1]);
-            double common = Math.sin(theta)/Math.cos(theta/2);
-            double sinm = Math.sin(theta);
-            double sinm2 = Math.sin(theta/2);
-            double cosm = Math.cos(theta);
-            double cosm2 = Math.cos(theta/2);
-            return radius*C*C*(((-sinm/cosm2) + sinm2*cosm/(2*cosm2*cosm2) + (sinm+sinm2*(2*cosm*cosm2+sinm2*sinm))/(4*cosm2*cosm2*cosm2))*Math.cos((initialHeading+theta)/2))
-                                - Math.sin((initialHeading+theta)/2)*(cosm/cosm2 + sinm2*sinm/(cosm2*cosm2))/2
-                                - (1.0/2.0)*(Math.sin((initialHeading+theta)/2)*(cosm*cosm2+sinm*sinm2)/(cosm2*cosm2)+Math.cos((initialHeading+theta)/2)*sinm/cosm2);
+            double thetaInitial = pathWaypoints[i].angleFrom(pathWaypoints[i-1]);
+            double thetaFinal = pathWaypoints[i+1].angleTo(pathWaypoints[i+2]);
+            double change;
+            if(ACMath.compassAngleShorter(thetaInitial, thetaFinal)){
+                change = ACMath.toCompassAngle(thetaFinal)-ACMath.toCompassAngle(thetaInitial);
+            }else{
+                change = ACMath.toStandardAngle(thetaFinal) - ACMath.toStandardAngle(thetaInitial);
+            }
+            double deltaTheta = change*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            if(change == 0.0){
+                return 0;
+            }else if(change>0){
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return radius*Math.pow(change/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime()), 2)*Math.cos(thetaInitial+deltaTheta+Math.PI/2);
+            }else{
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return -radius*Math.pow(change/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime()), 2)*Math.cos(thetaInitial+deltaTheta-Math.PI/2);
+            }
         }else{
             return 0;
         }
     }
     public double yOfTime(double time){
         int i=0;
-        while(pathWaypoints[i].getTime() > time && i<pathWaypoints.length-1){
+        while(pathWaypoints[i].getTime() <= time && i<pathWaypoints.length-1){
             i++;
         }
+        i--;
         if(i>=pathWaypoints.length-1) {
             return pathWaypoints[pathWaypoints.length - 1].getY();
         }else if(pathWaypoints[i].getType() == Waypoint.Type.CURVE_START){
-            //phi is the difference in the angle between the two straight lines before and after the curve
-            double phi = pathWaypoints[i].angleTo(pathWaypoints[i-1])-pathWaypoints[i].angleTo(pathWaypoints[i+1]);
-            double radius = lookAheadDistance*Math.tan(phi/2);
-            //theta is the angle tended by the robot in the time specified
-            double theta = (Math.PI-phi)*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
-            if(theta%Math.PI != 0) {
-                return pathWaypoints[i].getY() + (radius * Math.sin(theta) / Math.cos(theta / 2)) * Math.sin((pathWaypoints[i].angleFrom(pathWaypoints[i - 1]) + theta) / 2);
+            double thetaInitial = pathWaypoints[i].angleFrom(pathWaypoints[i-1]);
+            double thetaFinal = pathWaypoints[i+1].angleTo(pathWaypoints[i+2]);
+            double change;
+            if(ACMath.compassAngleShorter(thetaInitial, thetaFinal)){
+                change = ACMath.toCompassAngle(thetaFinal)-ACMath.toCompassAngle(thetaInitial);
             }else{
-                return pathWaypoints[i].getY() + (radius*2) * Math.sin((pathWaypoints[i].angleFrom(pathWaypoints[i - 1]) + theta) / 2);
+                change = ACMath.toStandardAngle(thetaFinal) - ACMath.toStandardAngle(thetaInitial);
+            }
+            double deltaTheta = change*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+
+            if(change == 0.0){
+                return pathWaypoints[i].getY() + Math.sin(pathWaypoints[i].angleTo(pathWaypoints[i+1]))*universalDistanceToNext(i)*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            }else if(change>0){
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return pathWaypoints[i].getY() + radius*Math.sin(thetaInitial+Math.PI/2) - radius*Math.sin(thetaInitial+deltaTheta+Math.PI/2);
+            }else{
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return pathWaypoints[i].getY() - radius*Math.sin(thetaInitial-Math.PI/2) + radius*Math.sin(thetaInitial+deltaTheta-Math.PI/2);
             }
         }else{
             return pathWaypoints[i].getY() + Math.sin(pathWaypoints[i].angleTo(pathWaypoints[i+1]))*universalDistanceToNext(i)*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
@@ -158,52 +241,75 @@ public class PurePursuitPath {
     }
     public double yPrimeOfTime(double time){
         int i=0;
-        while(pathWaypoints[i].getTime() > time && i<pathWaypoints.length-1){
+        while(pathWaypoints[i].getTime() <= time && i<pathWaypoints.length-1){
             i++;
         }
+        i--;
         if(i>=pathWaypoints.length-1){
             return Math.sin(pathWaypoints[pathWaypoints.length-2].angleTo(pathWaypoints[pathWaypoints.length-1]))*universalDistanceToNext(pathWaypoints.length-2)/(pathWaypoints[pathWaypoints.length-1].getTime()-pathWaypoints[pathWaypoints.length-1].getTime());
         }else if(pathWaypoints[i].getType()==Waypoint.Type.CURVE_START){
-            //phi is the difference in the angle between the two straight lines before and after the curve
-            double phi = pathWaypoints[i].angleTo(pathWaypoints[i-1])-pathWaypoints[i].angleTo(pathWaypoints[i+1]);
-            double radius = lookAheadDistance*Math.tan(phi/2);
-            double C = (Math.PI-phi)/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
-            //theta is the angle tended by the robot in the time specified
-            double theta = C*(time-pathWaypoints[i].getTime());
-            double initialHeading = pathWaypoints[i].angleFrom(pathWaypoints[i - 1]);
-            double common = Math.sin(theta)/Math.cos(theta/2);
-            return C*radius*((Math.cos(theta)/Math.cos(theta/2)+Math.tan(theta/2)*common/2)*Math.sin((initialHeading+theta)/2)+
-                    Math.cos((initialHeading+theta)/2)*common/2);
+            double thetaInitial = pathWaypoints[i].angleFrom(pathWaypoints[i-1]);
+            double thetaFinal = pathWaypoints[i+1].angleTo(pathWaypoints[i+2]);
+            double change;
+            if(ACMath.compassAngleShorter(thetaInitial, thetaFinal)){
+                change = ACMath.toCompassAngle(thetaFinal)-ACMath.toCompassAngle(thetaInitial);
+            }else{
+                change = ACMath.toStandardAngle(thetaFinal) - ACMath.toStandardAngle(thetaInitial);
+            }
+            double deltaTheta = change*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            if(change == 0.0){
+                return Math.sin(pathWaypoints[i].angleTo(pathWaypoints[i+1]))*universalDistanceToNext(i)/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            }else if(change>0){
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return -radius*(change/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime()))*Math.cos(thetaInitial+deltaTheta+Math.PI/2);
+            }else{
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return radius*(change/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime()))*Math.cos(thetaInitial+deltaTheta-Math.PI/2);
+            }
         }else{
             return Math.sin(pathWaypoints[i].angleTo(pathWaypoints[i+1]))*universalDistanceToNext(i)/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
         }
     }
     public double yDoublePrimeOfTime(double time){
         int i=0;
-        while(pathWaypoints[i].getTime() > time && i<pathWaypoints.length-1){
+        while(pathWaypoints[i].getTime() <= time && i<pathWaypoints.length-1){
             i++;
         }
+        i--;
         if(i>=pathWaypoints.length-1){
             return 0;
         }else if(pathWaypoints[i].getType()==Waypoint.Type.CURVE_START){
-            //phi is the difference in the angle between the two straight lines before and after the curve
-            double phi = pathWaypoints[i].angleTo(pathWaypoints[i-1])-pathWaypoints[i].angleTo(pathWaypoints[i+1]);
-            double radius = lookAheadDistance*Math.tan(phi/2);
-            double C = (Math.PI-phi)/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
-            //theta is the angle tended by the robot in the time specified
-            double theta = C*(time-pathWaypoints[i].getTime());
-            double initialHeading = pathWaypoints[i].angleFrom(pathWaypoints[i - 1]);
-            double common = Math.sin(theta)/Math.cos(theta/2);
-            double sinm = Math.sin(theta);
-            double sinm2 = Math.sin(theta/2);
-            double cosm = Math.cos(theta);
-            double cosm2 = Math.cos(theta/2);
-            return radius*C*C*(((-sinm/cosm2) + sinm2*cosm/(2*cosm2*cosm2) + (sinm+sinm2*(2*cosm*cosm2+sinm2*sinm))/(4*cosm2*cosm2*cosm2))*Math.sin((initialHeading+theta)/2))
-                    + Math.cos((initialHeading+theta)/2)*(cosm/cosm2 + sinm2*sinm/(cosm2*cosm2))/2
-                    + (1.0/2.0)*(Math.cos((initialHeading+theta)/2)*(cosm*cosm2+sinm*sinm2)/(cosm2*cosm2) - Math.sin((initialHeading+theta)/2)*sinm/cosm2);
+            double thetaInitial = pathWaypoints[i].angleFrom(pathWaypoints[i-1]);
+            double thetaFinal = pathWaypoints[i+1].angleTo(pathWaypoints[i+2]);
+            double change;
+            if(ACMath.compassAngleShorter(thetaInitial, thetaFinal)){
+                change = ACMath.toCompassAngle(thetaFinal)-ACMath.toCompassAngle(thetaInitial);
+            }else{
+                change = ACMath.toStandardAngle(thetaFinal) - ACMath.toStandardAngle(thetaInitial);
+            }
+            double deltaTheta = change*(time-pathWaypoints[i].getTime())/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime());
+            if(change == 0.0){
+                return 0;
+            }else if(change>0){
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return radius*Math.pow(change/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime()), 2)*Math.sin(thetaInitial+deltaTheta+Math.PI/2);
+            }else{
+                double radius = lookAheadDistance/Math.tan((thetaFinal-thetaInitial)/2);
+                return -radius*Math.pow(change/(pathWaypoints[i+1].getTime()-pathWaypoints[i].getTime()), 2)*Math.sin(thetaInitial+deltaTheta-Math.PI/2);
+            }
         }else{
             return 0;
         }
+    }
+    //Robot controls
+    public double linearVelocityOfTime(double time){
+        return Math.hypot(yPrimeOfTime(time), xPrimeOfTime(time));
+    }
+    public double angleByTime(double time){
+        return Math.atan2(yPrimeOfTime(time), xPrimeOfTime(time));
+    }
+    public double anglePrimeByTime(double time){
+        return (yDoublePrimeOfTime(time)*xPrimeOfTime(time) - yPrimeOfTime(time)*xDoublePrimeOfTime(time)) / (Math.pow(yPrimeOfTime(time), 2) + Math.pow(xPrimeOfTime(time), 2));
     }
 
     //General Useful Functions
@@ -212,10 +318,22 @@ public class PurePursuitPath {
             return 0;
         }
         if(pathWaypoints[index].getType() == Waypoint.Type.CURVE_START && !(index<1)){
-            double phi = pathWaypoints[index].angleTo(pathWaypoints[index-1])-pathWaypoints[index].angleTo(pathWaypoints[index+1]);
-            return (Math.PI-phi)*lookAheadDistance*Math.tan(phi/2);
+            double theta;
+            if(ACMath.compassAngleShorter(pathWaypoints[index+1].angleTo(pathWaypoints[index+2]), pathWaypoints[index].angleFrom(pathWaypoints[index-1]))) {
+                theta = ACMath.toCompassAngle(pathWaypoints[index + 1].angleTo(pathWaypoints[index + 2])) - ACMath.toCompassAngle(pathWaypoints[index].angleFrom(pathWaypoints[index - 1]));
+            }else{
+                theta = ACMath.toStandardAngle(pathWaypoints[index + 1].angleTo(pathWaypoints[index + 2])) - ACMath.toStandardAngle(pathWaypoints[index].angleFrom(pathWaypoints[index - 1]));
+            }
+            if(theta == 0){
+                return pathWaypoints[index].distanceFrom(pathWaypoints[index+1]);
+            }else {
+                return Math.abs(theta * lookAheadDistance / Math.tan(theta / 2));
+            }
         }else{
             return pathWaypoints[index].distanceFrom(pathWaypoints[index+1]);
         }
+    }
+    public double getTotalPathTime(){
+        return pathTime;
     }
 }

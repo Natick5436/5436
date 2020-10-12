@@ -96,6 +96,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin" >
 
+    <ImageView
+        android:id="@+id/fieldimage"
+        android:layout_width="382dp"
+        android:layout_height="356dp"
+        android:src="@drawable/field_bitmap" />
+
     <TextView
       android:id="@+id/textNetworkConnectionStatus"
       android:layout_width="match_parent"

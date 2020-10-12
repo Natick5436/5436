@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode;
 import org.firstinspires.ftc.teamcode.Hardware.*;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name = "M5 Blue Quarry", group = "Autonomous")
+@Disabled
 public class M5_Blue_Quarry_Auto extends LinearOpMode {
 
     Mark_5 robot = new Mark_5(this);

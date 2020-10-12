@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.File;
 
-public class Odometry extends Thread{
+public class Odometry implements PositionTracker, AngleTracker{
     //wheelDiameter in centimeters.
     double wheelDiameter;
     //wheel Circumference in meters for ease of odometry use.
@@ -68,6 +68,10 @@ public class Odometry extends Thread{
         velocityMiddle = 0;
         lastTime = 0;
         currentTime = 0;
+        lastEncoderL = left.getCurrentPosition();
+        lastEncoderR = right.getCurrentPosition();
+        lastEncoderMiddle = middle.getCurrentPosition();
+        lastTime = System.currentTimeMillis();
     }
 
     public double getX(){
@@ -93,12 +97,10 @@ public class Odometry extends Thread{
     public double getVelocityMiddle(){return velocityMiddle;}
 
 
-    public void run(){
-        lastEncoderL = left.getCurrentPosition();
-        lastEncoderR = right.getCurrentPosition();
-        lastEncoderMiddle = middle.getCurrentPosition();
-        lastTime = System.currentTimeMillis();
-        while (ln.opModeIsActive()){
+    public void start(){
+
+    }
+    public void update(){
             currentEncoderL = left.getCurrentPosition();
             currentEncoderR = right.getCurrentPosition();
             currentEncoderMiddle = middle.getCurrentPosition();
@@ -140,6 +142,5 @@ public class Odometry extends Thread{
             lastEncoderR = currentEncoderR;
             lastEncoderMiddle = currentEncoderMiddle;
             lastTime = currentTime;
-        }
     }
 }

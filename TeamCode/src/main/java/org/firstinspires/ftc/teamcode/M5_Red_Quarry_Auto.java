@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Hardware.*;
 
 @Autonomous(name = "M5 Red Quarry", group = "Autonomous")
+@Disabled
 public class M5_Red_Quarry_Auto extends LinearOpMode {
 
     Mark_5 robot = new Mark_5(this);
